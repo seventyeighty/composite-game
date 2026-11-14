@@ -23,9 +23,12 @@ function strokePath(ctx, pts) {
 }
 
 // Bucket fill. Soft edge pixels of a line count as "inside", so no pale halo is left around shapes.
-function floodFill(ctx, w, h, sx, sy, color) {
+function floodFill(ctx, w, h, sx, sy, color, clip) {
   sx = Math.round(sx); sy = Math.round(sy);
-  if (sx < 0 || sy < 0 || sx >= w || sy >= h) return;
+  // the fill never leaves the piece's area
+  const bx0 = clip ? Math.max(0, Math.floor(clip[0])) : 0, by0 = clip ? Math.max(0, Math.floor(clip[1])) : 0;
+  const bx1 = clip ? Math.min(w, Math.ceil(clip[0] + clip[2])) : w, by1 = clip ? Math.min(h, Math.ceil(clip[1] + clip[3])) : h;
+  if (sx < bx0 || sy < by0 || sx >= bx1 || sy >= by1) return;
   const img = ctx.getImageData(0, 0, w, h);
   const d = img.data;
   const [fr, fg, fb] = hexToRgb(color);
@@ -44,17 +47,17 @@ function floodFill(ctx, w, h, sx, sy, color) {
     const y = stack.pop();
     let x = stack.pop();
     let i = (y * w + x) * 4;
-    while (x >= 0 && !seen[y * w + x] && match(i)) { x--; i -= 4; }
+    while (x >= bx0 && !seen[y * w + x] && match(i)) { x--; i -= 4; }
     x++; i += 4;
     let up = false, down = false;
-    while (x < w && !seen[y * w + x] && match(i)) {
+    while (x < bx1 && !seen[y * w + x] && match(i)) {
       seen[y * w + x] = 1;
       d[i] = fr; d[i + 1] = fg; d[i + 2] = fb; d[i + 3] = 255;
-      if (y > 0) {
+      if (y > by0) {
         const m = !seen[(y - 1) * w + x] && match(i - w * 4);
         if (m && !up) { stack.push(x, y - 1); up = true; } else if (!m) up = false;
       }
-      if (y < h - 1) {
+      if (y < by1 - 1) {
         const m = !seen[(y + 1) * w + x] && match(i + w * 4);
         if (m && !down) { stack.push(x, y + 1); down = true; } else if (!m) down = false;
       }
@@ -74,6 +77,7 @@ export class Sketch {
     this.color = '#1F2430';
     this.size = 10;
     this.locked = false;
+    this.clip = null;      // [x, y, w, h]: ink outside this is cut off
     this.onChange = () => {};
 
     host.textContent = '';
@@ -160,10 +164,15 @@ export class Sketch {
 
   apply(ctx, op) {
     if (op.tool === 'fill') {
-      floodFill(ctx, this.w, this.h, op.x, op.y, op.color);
+      floodFill(ctx, this.w, this.h, op.x, op.y, op.color, this.clip);
       return;
     }
     ctx.save();
+    if (this.clip) {
+      ctx.beginPath();
+      ctx.rect(this.clip[0], this.clip[1], this.clip[2], this.clip[3]);
+      ctx.clip();
+    }
     ctx.globalCompositeOperation = op.tool === 'eraser' ? 'destination-out' : 'source-over';
     ctx.strokeStyle = op.tool === 'eraser' ? '#000' : op.color;
     ctx.lineWidth = op.size;

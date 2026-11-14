@@ -228,7 +228,7 @@ function startReveal(room) {
     .sort((a, b) => a.depth - b.depth || a.id - b.id)
     .map((s) => {
       const l = cur.layers.get(s.id);
-      return { label: s.label, prompt: s.prompt, artist: l.artist, png: l.png };
+      return { label: s.label, prompt: s.prompt, guide: s.guide, artist: l.artist, png: l.png };
     });
   cur.reveal = { layers, perLayerMs: REVEAL_MS, round: room.round, rounds: room.settings.rounds };
   room.state = 'reveal';

@@ -94,7 +94,7 @@ button:disabled{opacity:.5;cursor:default}
 .chip.soft{background:#FDFBF6;border:2px dashed rgba(96,106,122,.7)}
 .tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .tools .gap{flex:1 1 4px;min-width:0}
-.tool{width:46px;height:46px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0;border:2.5px solid var(--ink);background:var(--paper);box-shadow:3px 3px 0 var(--ink);border-radius:var(--wob-a)}
+.tool{width:42px;height:42px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0;border:2.5px solid var(--ink);background:var(--paper);box-shadow:3px 3px 0 var(--ink);border-radius:var(--wob-a)}
 .tool:nth-of-type(even){border-radius:var(--wob-b);transform:rotate(1.5deg)}
 .tool:nth-of-type(odd){transform:rotate(-1.5deg)}
 .tool svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -113,7 +113,7 @@ button:disabled{opacity:.5;cursor:default}
 .stack .s1{transform:rotate(-2.2deg)}
 .stack .s2{transform:rotate(1.6deg);background:#F9F6EF}
 .stack .paper{position:relative}
-.paper img.drop{animation:drop .55s cubic-bezier(.2,.9,.3,1.25) both}
+.paper .drop{animation:drop .55s cubic-bezier(.2,.9,.3,1.25) both}
 @keyframes drop{from{opacity:0;transform:translateY(-9%) rotate(-3deg) scale(1.08)}to{opacity:1;transform:none}}
 .tag{position:absolute;right:-6px;bottom:-14px;max-width:86%;background:var(--yellow);padding:6px 14px 8px;border-radius:8px;transform:rotate(1.5deg);box-shadow:0 4px 10px rgba(0,0,0,.3);font-size:17px;line-height:1.2}
 .tag-name{font-family:'Caveat Brush',cursive;font-size:25px;line-height:1;margin-right:4px}
@@ -163,5 +163,5 @@ button:disabled{opacity:.5;cursor:default}
   .logo.big{font-size:54px}
 }
 @media (prefers-reduced-motion:reduce){
-  .timer.hurry,.paper img.drop{animation:none}
+  .timer.hurry,.paper .drop{animation:none}
 }

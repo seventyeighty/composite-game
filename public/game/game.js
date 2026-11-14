@@ -1,7 +1,7 @@
 // Composite: the game client. One page, several screens, driven by messages from the server.
 
 import { Sketch } from './sketch.js';
-import { drawGuide, drawGhosts } from './guides.js';
+import { drawGuide, drawGhosts, drawOutOfBounds } from './guides.js';
 
 const $ = (id) => document.getElementById(id);
 const SCREENS = ['home', 'lobby', 'draw', 'wait', 'reveal', 'end'];
@@ -19,6 +19,64 @@ const BRIEFS = {
   personL: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
   box: { kind: 'YOUR PIECE', how: 'Draw it inside the dotted box, about that size.' },
 };
+const CUT_OFF = ' Anything in the shaded part of the page gets cut off.';
+
+// Each piece starts on a different colour, so layers differ even if nobody changes it.
+const START_COLORS = ['#1F2430', '#E5484D', '#3B82F6', '#46A758', '#6E56CF', '#F5852A', '#12A594', '#E667AA'];
+
+// How far outside its guide a piece may spill, in drawing units.
+function clipFor(s, canvas) {
+  if (s.guide === 'full') return null;
+  const m = s.guide === 'strip' ? 10 : 40;
+  const [x, y, w, h] = s.rect;
+  const x0 = Math.max(0, x - m), y0 = Math.max(0, y - m);
+  return [x0, y0, Math.min(canvas.w, x + w + m) - x0, Math.min(canvas.h, y + h + m) - y0];
+}
+
+// Characters and objects get a paper backing, like a cut-out: the inside of any closed outline
+// becomes solid paper and every line gets a thin paper edge. That way a piece hides what is
+// behind it even when it was drawn as outlines only.
+function cutOut(img) {
+  const W = 800, H = 600, EDGE = 4;
+  const src = document.createElement('canvas');
+  src.width = W; src.height = H;
+  const sctx = src.getContext('2d', { willReadFrequently: true });
+  sctx.drawImage(img, 0, 0, W, H);
+  const data = sctx.getImageData(0, 0, W, H).data;
+  // flood in from the page edges across empty pixels: whatever is not reached is "inside"
+  const outside = new Uint8Array(W * H);
+  const stack = [];
+  const visit = (i) => { if (!outside[i] && data[i * 4 + 3] < 60) { outside[i] = 1; stack.push(i); } };
+  for (let x = 0; x < W; x++) { visit(x); visit((H - 1) * W + x); }
+  for (let y = 0; y < H; y++) { visit(y * W); visit(y * W + W - 1); }
+  while (stack.length) {
+    const i = stack.pop(), x = i % W;
+    if (x > 0) visit(i - 1);
+    if (x < W - 1) visit(i + 1);
+    if (i >= W) visit(i - W);
+    if (i < W * (H - 1)) visit(i + W);
+  }
+  const mask = document.createElement('canvas');
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext('2d');
+  const m = mctx.createImageData(W, H);
+  let any = false;
+  for (let i = 0; i < W * H; i++) {
+    if (outside[i]) continue;
+    any = true;
+    m.data[i * 4] = 253; m.data[i * 4 + 1] = 251; m.data[i * 4 + 2] = 246; m.data[i * 4 + 3] = 255;
+  }
+  if (!any) return img;
+  mctx.putImageData(m, 0, 0);
+  const out = document.createElement('canvas');
+  out.width = W; out.height = H;
+  const octx = out.getContext('2d');
+  for (let a = 0; a < 8; a++) octx.drawImage(mask, Math.round(Math.cos(a * Math.PI / 4) * EDGE), Math.round(Math.sin(a * Math.PI / 4) * EDGE));
+  octx.drawImage(mask, 0, 0);
+  octx.drawImage(img, 0, 0, W, H);
+  return out;
+}
+const isCutOut = (guide) => guide === 'box' || guide === 'personR' || guide === 'personL';
 const SESSION_KEY = 'composite-session';
 
 let ws = null;
@@ -317,7 +375,8 @@ function addLayer(i, animate) {
   const l = revealLayers[i];
   if (!l || !l.img) return;
   const img = l.img;
-  img.alt = `${l.label}, drawn by ${l.artist}`;
+  img.setAttribute('role', 'img');
+  img.setAttribute('aria-label', `${l.label}, drawn by ${l.artist}`);
   if (animate) img.className = 'drop';
   $('rv-paper').appendChild(img);
   const li = document.createElement('li');
@@ -405,16 +464,19 @@ const on = {
     const soft = m.slot.guide === 'full';
     const brief = BRIEFS[m.slot.guide] || BRIEFS.box;
     $('draw-kind').textContent = brief.kind;
-    $('draw-how').textContent = brief.how;
+    const clip = clipFor(m.slot, m.canvas);
+    $('draw-how').textContent = brief.how + (clip && m.slot.guide !== 'strip' ? CUT_OFF : '');
     $('lg-soft').hidden = !soft || !m.ghosts.length;
     $('lg-back').hidden = soft || !m.ghosts.some((g) => !g.front);
     $('lg-front').hidden = soft || !m.ghosts.some((g) => g.front);
+    sketch.clip = clip;
     drawGhosts(sketch.guide, m.ghosts, m.canvas, soft);
+    drawOutOfBounds(sketch.guide, clip, m.canvas);
     drawGuide(sketch.guide, m.slot, m.canvas);
-    // carry tool choices over from the last drawing
-    const color = document.querySelector('.swatch[aria-pressed="true"]');
+    const startColor = START_COLORS[m.slot.id % START_COLORS.length];
+    sketch.color = startColor;
+    document.querySelectorAll('.swatch').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.color === startColor)));
     const size = document.querySelector('[data-size][aria-pressed="true"]');
-    sketch.color = color ? color.dataset.color : COLORS[0][0];
     sketch.size = size ? Number(size.dataset.size) : 10;
     setTool('brush');
     show('draw');
@@ -446,7 +508,7 @@ const on = {
     show('reveal');
     const started = performance.now();
     const imgs = await Promise.all(m.layers.map((l) => loadImage(l.png)));
-    revealLayers = m.layers.map((l, i) => ({ ...l, img: imgs[i] }));
+    revealLayers = m.layers.map((l, i) => ({ ...l, img: imgs[i] && isCutOut(l.guide) ? cutOut(imgs[i]) : imgs[i] }));
     if (!revealLayers.length) $('rv-heading').textContent = 'Nobody drew anything this round!';
     if (m.instant) {
       revealLayers.forEach((_, i) => addLayer(i, false));

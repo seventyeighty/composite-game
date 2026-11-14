@@ -140,3 +140,15 @@ export function drawGhosts(ctx, ghosts, canvas, soft = false) {
     ctx.restore();
   }
 }
+
+// A light wash over the part of the page this piece cannot draw on.
+export function drawOutOfBounds(ctx, clip, canvas) {
+  if (!clip) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, canvas.w, canvas.h);
+  ctx.rect(clip[0], clip[1], clip[2], clip[3]);
+  ctx.fillStyle = 'rgba(31,36,48,0.07)';
+  ctx.fill('evenodd');
+  ctx.restore();
+}
