@@ -12,6 +12,12 @@ layers are stacked into one picture.
     Every scene is a diorama: a backdrop over the whole page, a midground strip, characters, a foreground strip that
     covers their feet, and an overlay on top. Layouts are built so pieces overlap.
   - `public/index.html` and `public/game/`: the game pages (lobby, drawing tools, reveal, guessing, gallery).
+- **Layer telephone** (`public/telephone/`), pass and play on one device for now. Every player starts a picture
+  with one line. Each picture is built back to front, one layer at a time: someone writes what the next layer is
+  (seeing the picture so far, but none of the earlier text, and placing an outline for characters and things),
+  then someone else draws it. At the end each picture plays back layer by layer with the instructions that caused it.
+  - `engine.js`: the rules (chains, turns, who works on what), with no screen code, so the server can use it later.
+  - `telephone.js`: the pass-and-play screens.
 - **Poster lab** (`public/lab/`): finishes sample drawings as different kinds of movie poster.
   This is the test bed for the "movie poster" variant, which is not in the game yet.
 
@@ -33,7 +39,7 @@ npm install
 npm start
 ```
 
-Then open http://localhost:3000 (the poster lab is at http://localhost:3000/lab/).
+Then open http://localhost:3000 (layer telephone is at http://localhost:3000/telephone/, the poster lab at http://localhost:3000/lab/).
 To try it alone, open the room link in two or three browser tabs: each tab is a separate player.
 
 ## Put it online (Render)
