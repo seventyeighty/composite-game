@@ -13,7 +13,7 @@ const COLORS = [
 
 // What to do, by kind of piece. Shown in large type next to the prompt.
 const BRIEFS = {
-  full: { kind: 'YOUR PIECE: THE BACKDROP', how: 'Draw the far-away background and cover the whole page. Everything else will be placed in front of it, so draw right through the dashed boxes.' },
+  full: { kind: 'YOUR PIECE: THE BACKDROP', how: 'Draw the far-away background and cover the whole page. Other players\' pieces will be placed in front of it later.' },
   strip: { kind: 'YOUR PIECE: A LAYER ACROSS THE PICTURE', how: 'Draw across the dotted strip from edge to edge and fill it in. Give the top edge a shape. The fill bucket helps.' },
   personR: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
   personL: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
@@ -462,15 +462,17 @@ const on = {
     $('draw-kind').textContent = brief.kind;
     const clip = clipFor(m.slot, m.canvas);
     $('draw-how').textContent = brief.how + (clip && m.slot.guide !== 'strip' ? CUT_OFF : '');
-    $('lg-soft').hidden = !soft || !m.ghosts.length;
-    $('lg-back').hidden = soft || !m.ghosts.some((g) => !g.front);
-    $('lg-front').hidden = soft || !m.ghosts.some((g) => g.front);
+    // The backdrop gets a blank page: everything goes in front of it, so marking each piece only adds clutter.
+    const ghosts = soft ? [] : m.ghosts;
+    $('lg-soft').hidden = true;
+    $('lg-back').hidden = !ghosts.some((g) => !g.front);
+    $('lg-front').hidden = !ghosts.some((g) => g.front);
     sketch.clip = clip;
     sketch.enclosedFill = m.slot.guide !== 'strip' && m.slot.guide !== 'full';
     sketch.onFillRefused = () => toast('Fill works inside a closed shape. Draw an outline first, then fill it.');
     const dark = isDark(m.page);
     paintPage(sketch.guide, m.page, m.canvas.w, m.canvas.h);
-    drawGhosts(sketch.guide, m.ghosts, m.canvas, soft, dark);
+    drawGhosts(sketch.guide, ghosts, m.canvas, soft, dark);
     drawOutOfBounds(sketch.guide, clip, m.canvas, dark);
     drawGuide(sketch.guide, m.slot, m.canvas, dark);
     window.__slot = m.slot; // read by the automated tests
