@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Composite: poster lab</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="lab.css">
+<script src="/vendor/pixi/pixi.min.js"></script>
+<script src="/vendor/pixi-filters/pixi-filters.js"></script>
+</head>
+<body>
+<header>
+  <h1>Composite <span>poster lab</span></h1>
+  <p>The same drawings, finished as different kinds of movie poster. Pick a finish, type a title.</p>
+</header>
+<main>
+  <section id="stage" aria-label="Poster"></section>
+  <section class="panel" aria-label="Controls">
+    <h2>Drawings</h2>
+    <div id="samples" class="chips"></div>
+
+    <h2>Finish</h2>
+    <div id="finishes"></div>
+
+    <h2>Words</h2>
+    <label for="title">Title</label>
+    <input id="title" type="text" maxlength="40" autocomplete="off">
+    <label for="tagline">Tagline</label>
+    <input id="tagline" type="text" maxlength="70" autocomplete="off">
+    <p class="note">In the game, players type these after seeing the picture. The secret film here was <strong id="real-title"></strong>.</p>
+
+    <button id="download" type="button" class="primary">Save poster as image</button>
+  </section>
+</main>
+<script type="module" src="lab.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+/* Fonts are served from this site (node_modules/@fontsource), not from another website. */
+@font-face{font-family:'Cinzel';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/cinzel/files/cinzel-latin-900-normal.woff2') format('woff2')}
+@font-face{font-family:'Creepster';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/creepster/files/creepster-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Monoton';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/monoton/files/monoton-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/playfair-display/files/playfair-display-latin-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:700;font-display:swap;src:url('/fonts/playfair-display/files/playfair-display-latin-700-italic.woff2') format('woff2')}
+@font-face{font-family:'Playfair Display';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/playfair-display/files/playfair-display-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/bebas-neue/files/bebas-neue-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Anton';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/anton/files/anton-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Alfa Slab One';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/alfa-slab-one/files/alfa-slab-one-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Yellowtail';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/yellowtail/files/yellowtail-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Oswald';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/oswald/files/oswald-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Oswald';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/oswald/files/oswald-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Audiowide';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/audiowide/files/audiowide-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Caveat Brush';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/caveat-brush/files/caveat-brush-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/patrick-hand/files/patrick-hand-latin-400-normal.woff2') format('woff2')}
+
+*{box-sizing:border-box}
+body{margin:0;color:#1F2430;font-family:'Patrick Hand',system-ui,sans-serif;font-size:18px;line-height:1.35;
+  background-color:#2E6F62;
+  background-image:linear-gradient(rgba(255,255,255,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.16) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:80px 80px,80px 80px,16px 16px,16px 16px}
+header{padding:20px 24px 4px;color:#F4F1E8;max-width:1120px;margin:0 auto}
+h1{margin:0;font-family:'Caveat Brush',cursive;font-weight:400;font-size:44px;line-height:1}
+h1 span{color:#FFD23F}
+header p{margin:6px 0 0}
+main{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;max-width:1120px;margin:0 auto;padding:16px 24px 40px}
+#stage{flex:0 1 600px;min-width:0;background:#111;padding:14px;box-shadow:0 16px 34px rgba(0,0,0,.45);color:#F4F1E8}
+#stage canvas{display:block;width:100%!important;height:auto!important;aspect-ratio:2/3}
+.panel{flex:1 1 320px;min-width:0;background:#FBF8F1;padding:18px 20px 22px;box-shadow:0 8px 16px rgba(0,0,0,.25);border-radius:3px}
+h2{margin:18px 0 8px;font-family:'Caveat Brush',cursive;font-weight:400;font-size:26px;line-height:1}
+h2:first-child{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+button{font:inherit;color:inherit;cursor:pointer}
+.chip,.finish,.primary{border:2.5px solid #1F2430;background:#fff;box-shadow:3px 3px 0 #1F2430;min-height:44px}
+.chip{padding:6px 14px;border-radius:14px 18px 12px 20px / 18px 12px 20px 14px}
+.finish{display:block;width:100%;text-align:left;padding:8px 14px 9px;margin-bottom:10px;border-radius:255px 18px 225px 18px / 18px 225px 18px 255px}
+.finish-name{display:block;font-family:'Caveat Brush',cursive;font-size:23px;line-height:1.1}
+.finish-blurb{display:block;font-size:16px;color:#4A5160;line-height:1.2}
+[aria-pressed="true"]{background:#FFD23F}
+button:focus-visible,input:focus-visible{outline:3px solid #2F5BEA;outline-offset:2px}
+label{display:block;margin:10px 0 4px;font-size:16px;color:#4A5160}
+input{width:100%;font:inherit;padding:9px 12px;border:2.5px solid #1F2430;border-radius:10px;background:#fff;min-height:44px}
+.note{font-size:16px;color:#4A5160;margin:12px 0 16px}
+.primary{width:100%;padding:10px 14px;background:#FFD23F;font-family:'Caveat Brush',cursive;font-size:24px;border-radius:255px 18px 225px 18px / 18px 225px 18px 255px}
+@media (max-width:520px){header{padding:16px 14px 0}main{padding:12px 14px 32px;gap:18px}h1{font-size:36px}#stage{padding:8px}}
