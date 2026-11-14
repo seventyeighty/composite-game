@@ -8,7 +8,9 @@ layers are stacked into one picture.
 
 - **Scene mode**, playable with friends: make a room, share the link, draw, watch the reveal, guess the scene.
   - `server.js`: serves the pages and runs the rooms over WebSockets. Rooms live in memory, so they are lost if the server restarts.
-  - `data/scenes.js`: the scenes. Each has a secret and eight slots with a prompt, a guide shape and a stacking depth.
+  - `data/scenes.js`: the scenes. Each has a secret, a page color, and eight slots with a prompt, a guide shape and a stacking depth.
+    Nobody draws a full-page background: the game supplies colored paper, and the setting is built from sticker slots
+    and strips (a ground behind the characters, or a foreground in front of them).
   - `public/index.html` and `public/game/`: the game pages (lobby, drawing tools, reveal, guessing, gallery).
 - **Poster lab** (`public/lab/`): finishes sample drawings as different kinds of movie poster.
   This is the test bed for the "movie poster" variant, which is not in the game yet.
@@ -19,7 +21,8 @@ layers are stacked into one picture.
    more than one part, so every picture has at least six layers (scenery first, then characters).
 2. Each player sees only their own prompt, a dotted guide, and striped areas where other pieces will go.
    Pale stripes are behind their piece, bold stripes will cover it.
-3. Layers are revealed back to front, then everyone guesses the scene.
+3. Layers are revealed back to front, then everyone guesses the scene. Characters and objects are shown as
+   die-cut stickers (paper border and shadow); strips get a shadow so they look like paper laid across the page.
 
 ## Run it on your computer
 

@@ -152,7 +152,9 @@ function startRound(room) {
   const n = players.length;
   if (n < 1) return;
   if (room.unused.length === 0) room.unused = shuffle(SCENES.map((s) => s.id));
-  const scene = SCENES.find((s) => s.id === room.unused.pop());
+  if (process.env.FIRST_SCENE && room.round === 0) room.unused.push(process.env.FIRST_SCENE);
+  const nextId = room.unused.pop();
+  const scene = SCENES.find((s) => s.id === nextId);
 
   // How many drawing phases, and so how many layers.
   const phaseCount = n >= MIN_LAYERS ? 1 : Math.ceil(MIN_LAYERS / n);
@@ -183,6 +185,7 @@ function drawMessage(room, playerId) {
     type: 'draw',
     ...base,
     canvas: CANVAS,
+    page: cur.scene.page,
     slot: { id: slot.id, prompt: slot.prompt, guide: slot.guide, rect: slot.rect },
     // where the other pieces go, without saying what they are
     ghosts: cur.chosen
@@ -230,7 +233,7 @@ function startReveal(room) {
       const l = cur.layers.get(s.id);
       return { label: s.label, prompt: s.prompt, guide: s.guide, artist: l.artist, png: l.png };
     });
-  cur.reveal = { layers, perLayerMs: REVEAL_MS, round: room.round, rounds: room.settings.rounds };
+  cur.reveal = { layers, page: cur.scene.page, perLayerMs: REVEAL_MS, round: room.round, rounds: room.settings.rounds };
   room.state = 'reveal';
   broadcast(room, { type: 'reveal', ...cur.reveal });
   update(room);

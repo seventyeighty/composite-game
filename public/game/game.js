@@ -1,7 +1,7 @@
 // Composite: the game client. One page, several screens, driven by messages from the server.
 
 import { Sketch } from './sketch.js';
-import { drawGuide, drawGhosts, drawOutOfBounds } from './guides.js';
+import { drawGuide, drawGhosts, drawOutOfBounds, paintPage, isDark } from './guides.js';
 
 const $ = (id) => document.getElementById(id);
 const SCREENS = ['home', 'lobby', 'draw', 'wait', 'reveal', 'end'];
@@ -9,7 +9,6 @@ const COLORS = [
   ['#1F2430', 'Black'], ['#FFFFFF', 'White'], ['#8B8F98', 'Grey'], ['#8D5A3B', 'Brown'], ['#E5484D', 'Red'], ['#F5852A', 'Orange'],
   ['#FFD23F', 'Yellow'], ['#46A758', 'Green'], ['#12A594', 'Teal'], ['#3B82F6', 'Blue'], ['#6E56CF', 'Purple'], ['#E667AA', 'Pink'],
 ];
-const PAPER = '#FDFBF6';
 
 // What to do, by kind of piece. Shown in large type next to the prompt.
 const BRIEFS = {
@@ -99,6 +98,29 @@ function cutOut(img) {
   return out;
 }
 const isCutOut = (guide) => guide === 'box' || guide === 'personR' || guide === 'personL';
+
+// Strips run edge to edge, so they get a shadow but no paper border: a torn strip laid across the page.
+function stripShadow(img) {
+  const out = document.createElement('canvas');
+  out.width = 800; out.height = 600;
+  const ctx = out.getContext('2d');
+  ctx.save();
+  ctx.shadowColor = 'rgba(20,24,32,0.45)';
+  ctx.shadowBlur = 10;
+  ctx.drawImage(img, 0, 0, 800, 600);
+  ctx.restore();
+  ctx.drawImage(img, 0, 0, 800, 600);
+  return out;
+}
+function treat(img, guide) {
+  if (!img) return img;
+  if (isCutOut(guide)) return cutOut(img);
+  if (guide === 'strip') return stripShadow(img);
+  return img;
+}
+function pageCSS(page) {
+  return page ? `linear-gradient(${page[0]}, ${page[1]})` : '';
+}
 const SESSION_KEY = 'composite-session';
 
 let ws = null;
@@ -113,6 +135,7 @@ let revealTimers = [];
 let revealLayers = [];    // { label, prompt, artist, png, img }
 let gallery = [];         // { round, secret, url }
 let lastSecret = '';
+let revealPage = null;
 
 // --- small helpers ---------------------------------------------------------
 
@@ -421,8 +444,7 @@ function composite() {
   const c = document.createElement('canvas');
   c.width = 800; c.height = 600;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = PAPER;
-  ctx.fillRect(0, 0, 800, 600);
+  paintPage(ctx, revealPage, 800, 600);
   for (const l of revealLayers) if (l.img) ctx.drawImage(l.img, 0, 0, 800, 600);
   return c.toDataURL('image/png');
 }
@@ -492,10 +514,14 @@ const on = {
     $('lg-back').hidden = soft || !m.ghosts.some((g) => !g.front);
     $('lg-front').hidden = soft || !m.ghosts.some((g) => g.front);
     sketch.clip = clip;
-    drawGhosts(sketch.guide, m.ghosts, m.canvas, soft);
-    drawOutOfBounds(sketch.guide, clip, m.canvas);
-    drawGuide(sketch.guide, m.slot, m.canvas);
-    const startColor = START_COLORS[m.slot.id % START_COLORS.length];
+    const dark = isDark(m.page);
+    paintPage(sketch.guide, m.page, m.canvas.w, m.canvas.h);
+    drawGhosts(sketch.guide, m.ghosts, m.canvas, soft, dark);
+    drawOutOfBounds(sketch.guide, clip, m.canvas, dark);
+    drawGuide(sketch.guide, m.slot, m.canvas, dark);
+    window.__slot = m.slot; // read by the automated tests
+    let startColor = START_COLORS[m.slot.id % START_COLORS.length];
+    if (startColor === '#1F2430' && dark) startColor = '#FFFFFF';
     sketch.color = startColor;
     document.querySelectorAll('.swatch').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.color === startColor)));
     const size = document.querySelector('[data-size][aria-pressed="true"]');
@@ -522,6 +548,8 @@ const on = {
     $('rv-count').textContent = '';
     $('rv-heading').textContent = "Here's what you all made";
     $('rv-paper').textContent = '';
+    revealPage = m.page;
+    $('rv-paper').style.background = pageCSS(m.page);
     $('rv-list').textContent = '';
     $('rv-list').hidden = false;
     $('rv-tag').hidden = true;
@@ -530,7 +558,7 @@ const on = {
     show('reveal');
     const started = performance.now();
     const imgs = await Promise.all(m.layers.map((l) => loadImage(l.png)));
-    revealLayers = m.layers.map((l, i) => ({ ...l, img: imgs[i] && isCutOut(l.guide) ? cutOut(imgs[i]) : imgs[i] }));
+    revealLayers = m.layers.map((l, i) => ({ ...l, img: treat(imgs[i], l.guide) }));
     if (!revealLayers.length) $('rv-heading').textContent = 'Nobody drew anything this round!';
     if (m.instant) {
       revealLayers.forEach((_, i) => addLayer(i, false));
