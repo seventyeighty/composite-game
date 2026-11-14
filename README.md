@@ -6,10 +6,20 @@ layers are stacked into one picture.
 
 ## What's here so far
 
-- `server.js`: a small Node server. For now it only serves the pages. Multiplayer rooms will be added here.
-- `public/lab/`: the **poster lab**. It takes sample drawings and finishes them as different
-  kinds of movie poster (painted epic, 80s blockbuster, creature feature, pulp print, neon, indie print).
-  This is the test bed for the "movie poster" variant of the game.
+- **Scene mode**, playable with friends: make a room, share the link, draw, watch the reveal, guess the scene.
+  - `server.js`: serves the pages and runs the rooms over WebSockets. Rooms live in memory, so they are lost if the server restarts.
+  - `data/scenes.js`: the scenes. Each has a secret and eight slots with a prompt, a guide shape and a stacking depth.
+  - `public/index.html` and `public/game/`: the game pages (lobby, drawing tools, reveal, guessing, gallery).
+- **Poster lab** (`public/lab/`): finishes sample drawings as different kinds of movie poster.
+  This is the test bed for the "movie poster" variant, which is not in the game yet.
+
+### How a round works
+
+1. The server picks a scene and deals each player one slot. Rooms with fewer than six players draw in
+   more than one part, so every picture has at least six layers (scenery first, then characters).
+2. Each player sees only their own prompt, a dotted guide, and striped areas where other pieces will go.
+   Pale stripes are behind their piece, bold stripes will cover it.
+3. Layers are revealed back to front, then everyone guesses the scene.
 
 ## Run it on your computer
 
@@ -18,7 +28,8 @@ npm install
 npm start
 ```
 
-Then open http://localhost:3000/lab/
+Then open http://localhost:3000 (the poster lab is at http://localhost:3000/lab/).
+To try it alone, open the room link in two or three browser tabs: each tab is a separate player.
 
 ## Put it online (Render)
 
