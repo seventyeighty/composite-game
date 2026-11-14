@@ -10,6 +10,15 @@ const COLORS = [
   ['#FFD23F', 'Yellow'], ['#46A758', 'Green'], ['#12A594', 'Teal'], ['#3B82F6', 'Blue'], ['#6E56CF', 'Purple'], ['#E667AA', 'Pink'],
 ];
 const PAPER = '#FDFBF6';
+
+// What to do, by kind of piece. Shown in large type next to the prompt.
+const BRIEFS = {
+  full: { kind: 'YOUR PIECE: THE BACKGROUND', how: 'Draw the whole background. Cover the entire page, including under the dashed boxes.' },
+  strip: { kind: 'YOUR PIECE: A STRIP ACROSS THE PICTURE', how: 'Fill the dotted strip from edge to edge. The fill bucket helps.' },
+  personR: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
+  personL: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
+  box: { kind: 'YOUR PIECE', how: 'Draw it inside the dotted box, about that size.' },
+};
 const SESSION_KEY = 'composite-session';
 
 let ws = null;
@@ -393,7 +402,14 @@ const on = {
     $('draw-round').textContent = roundLabel(m);
     $('draw-prompt').textContent = m.slot.prompt;
     sketch = new Sketch($('sketch'), m.canvas);
-    drawGhosts(sketch.guide, m.ghosts, m.canvas);
+    const soft = m.slot.guide === 'full';
+    const brief = BRIEFS[m.slot.guide] || BRIEFS.box;
+    $('draw-kind').textContent = brief.kind;
+    $('draw-how').textContent = brief.how;
+    $('lg-soft').hidden = !soft || !m.ghosts.length;
+    $('lg-back').hidden = soft || !m.ghosts.some((g) => !g.front);
+    $('lg-front').hidden = soft || !m.ghosts.some((g) => g.front);
+    drawGhosts(sketch.guide, m.ghosts, m.canvas, soft);
     drawGuide(sketch.guide, m.slot, m.canvas);
     // carry tool choices over from the last drawing
     const color = document.querySelector('.swatch[aria-pressed="true"]');

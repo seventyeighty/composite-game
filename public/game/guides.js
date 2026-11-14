@@ -93,8 +93,25 @@ function stripePattern(ctx, front) {
   return ctx.createPattern(stripes[key], 'repeat');
 }
 
-// Pieces behind yours get pale stripes, pieces that will cover yours get bold ones.
-export function drawGhosts(ctx, ghosts, canvas) {
+function label(ctx, text, x0, y0, x1, y1) {
+  const w = x1 - x0, h = y1 - y0;
+  ctx.font = '20px "Patrick Hand", system-ui, sans-serif';
+  if (w < ctx.measureText(text).width + 16 || h < 34) return;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(253,251,246,0.9)';
+  ctx.strokeText(text, x0 + w / 2, y0 + h / 2);
+  ctx.fillStyle = '#4A5160';
+  ctx.fillText(text, x0 + w / 2, y0 + h / 2);
+}
+
+// Where the other pieces go.
+// Normal pieces: pale stripes are behind yours, bold stripes will cover yours.
+// soft (used for the background, which everything sits on): light dashed boxes only,
+// so the page still reads as something to draw all over.
+export function drawGhosts(ctx, ghosts, canvas, soft = false) {
   const inset = 4;
   const sorted = [...ghosts].sort((a, b) => Number(a.front) - Number(b.front));
   for (const g of sorted) {
@@ -103,13 +120,23 @@ export function drawGhosts(ctx, ghosts, canvas) {
     const x1 = Math.min(x + w, canvas.w - inset), y1 = Math.min(y + h, canvas.h - inset);
     ctx.save();
     roundRect(ctx, x0, y0, x1 - x0, y1 - y0, 22);
-    ctx.fillStyle = g.front ? 'rgba(236,239,243,0.9)' : 'rgba(246,247,249,0.9)';
-    ctx.fill();
-    ctx.fillStyle = stripePattern(ctx, g.front);
-    ctx.fill();
-    ctx.strokeStyle = g.front ? 'rgba(96,106,122,0.55)' : 'rgba(96,106,122,0.28)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    if (soft) {
+      ctx.setLineDash([10, 9]);
+      ctx.strokeStyle = 'rgba(96,106,122,0.55)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      label(ctx, 'a piece goes here', x0, y0, x1, y1);
+    } else {
+      ctx.fillStyle = g.front ? 'rgba(236,239,243,0.9)' : 'rgba(246,247,249,0.9)';
+      ctx.fill();
+      ctx.fillStyle = stripePattern(ctx, g.front);
+      ctx.fill();
+      ctx.strokeStyle = g.front ? 'rgba(96,106,122,0.55)' : 'rgba(96,106,122,0.28)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      label(ctx, g.front ? 'covers yours' : 'behind yours', x0, y0, x1, y1);
+    }
     ctx.restore();
   }
 }

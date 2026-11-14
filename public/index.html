@@ -71,7 +71,21 @@
     <span id="draw-round" class="bar-text"></span>
     <span id="draw-timer" class="timer" role="timer"></span>
   </header>
-  <div class="draw-grid">
+  <div class="draw-grid three">
+    <div class="brief">
+      <div class="prompt card">
+        <div id="draw-kind" class="small-label">YOUR PIECE</div>
+        <div id="draw-prompt" class="prompt-text"></div>
+      </div>
+      <div class="how card">
+        <p id="draw-how"></p>
+        <ul class="legend">
+          <li id="lg-soft"><span class="chip soft" aria-hidden="true"></span>Dashed boxes: other players' pieces will be placed there, on top of yours</li>
+          <li id="lg-back"><span class="chip back" aria-hidden="true"></span>Pale stripes: a piece that sits behind yours</li>
+          <li id="lg-front"><span class="chip front" aria-hidden="true"></span>Bold stripes: a piece that will cover yours</li>
+        </ul>
+      </div>
+    </div>
     <div class="canvas-col">
       <div class="paper-wrap">
         <div id="sketch" class="paper"></div>
@@ -79,11 +93,6 @@
       </div>
     </div>
     <div class="side">
-      <div class="prompt card">
-        <div class="small-label">YOUR PIECE</div>
-        <div id="draw-prompt" class="prompt-text"></div>
-      </div>
-      <p class="hint">Draw inside the dotted shape. Striped areas are other players' pieces: pale ones sit behind yours, bold ones will cover it.</p>
       <div class="tools" role="group" aria-label="Tools">
         <button type="button" class="tool" data-tool="brush" aria-label="Brush" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 19c1-4 3-5 5-4 2 1 1 4-5 4z"/><path d="M10 14C13 10 16 7 19.5 4.5l1.5 2C17 9 14 12 11.5 16"/></svg></button>
         <button type="button" class="tool" data-tool="eraser" aria-label="Eraser" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4.5 15.500C7 12 10 8 13.500 5l6.500 6c-3 3-6 6-8 9l-4 .2z"/><path d="M8 20.300c4-.3 8 .1 12-.3"/></svg></button>
