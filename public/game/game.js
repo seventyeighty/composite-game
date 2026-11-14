@@ -465,7 +465,6 @@ const on = {
     // The backdrop gets a blank page: everything goes in front of it, so marking each piece only adds clutter.
     const ghosts = soft ? [] : m.ghosts;
     $('lg-soft').hidden = true;
-    $('lg-back').hidden = !ghosts.some((g) => !g.front);
     $('lg-front').hidden = !ghosts.some((g) => g.front);
     sketch.clip = clip;
     sketch.enclosedFill = m.slot.guide !== 'strip' && m.slot.guide !== 'full';

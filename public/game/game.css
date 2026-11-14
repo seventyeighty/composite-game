@@ -90,7 +90,7 @@ button:disabled{opacity:.5;cursor:default}
 .legend li{display:flex;align-items:center;gap:10px;font-size:18px;line-height:1.2}
 .chip{flex:0 0 auto;width:38px;height:26px;border-radius:7px;border:2px solid rgba(96,106,122,.55)}
 .chip.back{background:repeating-linear-gradient(135deg,rgba(96,106,122,.22) 0 3px,#F6F7F9 3px 9px);border-color:rgba(96,106,122,.3)}
-.chip.front{background:repeating-linear-gradient(135deg,rgba(96,106,122,.6) 0 4px,#ECEFF3 4px 9px)}
+.chip.front{background:rgba(96,106,122,.06);border:2px dashed rgba(74,81,96,.6)}
 .chip.soft{background:#FDFBF6;border:2px dashed rgba(96,106,122,.7)}
 .tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .tools .gap{flex:1 1 4px;min-width:0}
