@@ -34,10 +34,10 @@ function clipFor(s, canvas) {
 }
 
 // Characters and objects get a paper backing, like a cut-out: the inside of any closed outline
-// becomes solid paper and every line gets a thin paper edge. That way a piece hides what is
+// becomes solid paper and every line gets a paper border, like a die-cut sticker. That way a piece hides what is
 // behind it even when it was drawn as outlines only.
 function cutOut(img) {
-  const W = 800, H = 600, EDGE = 4;
+  const W = 800, H = 600, EDGE = 9;
   const src = document.createElement('canvas');
   src.width = W; src.height = H;
   const sctx = src.getContext('2d', { willReadFrequently: true });
@@ -72,17 +72,27 @@ function cutOut(img) {
   const backing = document.createElement('canvas');
   backing.width = W; backing.height = H;
   const bctx = backing.getContext('2d');
-  for (let a = 0; a < 8; a++) bctx.drawImage(mask, Math.round(Math.cos(a * Math.PI / 4) * EDGE), Math.round(Math.sin(a * Math.PI / 4) * EDGE));
+  // grow in rings so thin lines get an even border with no gaps
+  for (const r of [EDGE / 3, (EDGE * 2) / 3, EDGE]) {
+    for (let a = 0; a < 16; a++) bctx.drawImage(mask, Math.round(Math.cos(a * Math.PI / 8) * r), Math.round(Math.sin(a * Math.PI / 8) * r));
+  }
   bctx.drawImage(mask, 0, 0);
   // The backing casts a soft shadow, like cut paper lying on the page. The paper edge separates
   // a piece from a dark background, the shadow separates it from a light one.
   const out = document.createElement('canvas');
   out.width = W; out.height = H;
   const octx = out.getContext('2d');
+  // Two shadows: a light rim that shows on dark backgrounds, a dark drop shadow that shows on
+  // light ones. Each is invisible where the other is needed, so together they work on any page.
+  octx.save();
+  octx.shadowColor = 'rgba(255,255,255,0.45)';
+  octx.shadowBlur = 10;
+  octx.drawImage(backing, 0, 0);
+  octx.restore();
   octx.save();
   octx.shadowColor = 'rgba(20,24,32,0.5)';
-  octx.shadowBlur = 7;
-  octx.shadowOffsetY = 3;
+  octx.shadowBlur = 8;
+  octx.shadowOffsetY = 4;
   octx.drawImage(backing, 0, 0);
   octx.restore();
   octx.drawImage(img, 0, 0, W, H);
