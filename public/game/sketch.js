@@ -23,19 +23,21 @@ function strokePath(ctx, pts) {
 }
 
 // Bucket fill. Soft edge pixels of a line count as "inside", so no pale halo is left around shapes.
-function floodFill(ctx, w, h, sx, sy, color, clip) {
+// With enclosedOnly, a fill that would run out to the edge of the piece's area is refused (returns false),
+// so clicking in empty space doesn't turn the whole area into a solid rectangle.
+function floodFill(ctx, w, h, sx, sy, color, clip, enclosedOnly = false) {
   sx = Math.round(sx); sy = Math.round(sy);
   // the fill never leaves the piece's area
   const bx0 = clip ? Math.max(0, Math.floor(clip[0])) : 0, by0 = clip ? Math.max(0, Math.floor(clip[1])) : 0;
   const bx1 = clip ? Math.min(w, Math.ceil(clip[0] + clip[2])) : w, by1 = clip ? Math.min(h, Math.ceil(clip[1] + clip[3])) : h;
-  if (sx < bx0 || sy < by0 || sx >= bx1 || sy >= by1) return;
+  if (sx < bx0 || sy < by0 || sx >= bx1 || sy >= by1) return false;
   const img = ctx.getImageData(0, 0, w, h);
   const d = img.data;
   const [fr, fg, fb] = hexToRgb(color);
   const s = (sy * w + sx) * 4;
   const tr = d[s], tg = d[s + 1], tb = d[s + 2], ta = d[s + 3];
   const targetClear = ta < 110;
-  if (!targetClear && Math.abs(tr - fr) + Math.abs(tg - fg) + Math.abs(tb - fb) < 12) return;
+  if (!targetClear && Math.abs(tr - fr) + Math.abs(tg - fg) + Math.abs(tb - fb) < 12) return true;
   const match = (i) => {
     const a = d[i + 3];
     if (targetClear) return a < 110;
@@ -43,6 +45,7 @@ function floodFill(ctx, w, h, sx, sy, color, clip) {
   };
   const seen = new Uint8Array(w * h);
   const stack = [sx, sy];
+  let leaks = false;
   while (stack.length) {
     const y = stack.pop();
     let x = stack.pop();
@@ -52,6 +55,7 @@ function floodFill(ctx, w, h, sx, sy, color, clip) {
     let up = false, down = false;
     while (x < bx1 && !seen[y * w + x] && match(i)) {
       seen[y * w + x] = 1;
+      if (x === bx0 || x === bx1 - 1 || y === by0 || y === by1 - 1) leaks = true;
       d[i] = fr; d[i + 1] = fg; d[i + 2] = fb; d[i + 3] = 255;
       if (y > by0) {
         const m = !seen[(y - 1) * w + x] && match(i - w * 4);
@@ -64,7 +68,9 @@ function floodFill(ctx, w, h, sx, sy, color, clip) {
       x++; i += 4;
     }
   }
+  if (enclosedOnly && leaks && targetClear) return false;
   ctx.putImageData(img, 0, 0);
+  return true;
 }
 
 export class Sketch {
@@ -78,7 +84,9 @@ export class Sketch {
     this.size = 10;
     this.locked = false;
     this.clip = null;      // [x, y, w, h]: ink outside this is cut off
+    this.enclosedFill = false; // fill only inside closed shapes
     this.onChange = () => {};
+    this.onFillRefused = () => {};
 
     host.textContent = '';
     const make = (cls) => {
@@ -120,7 +128,14 @@ export class Sketch {
     e.preventDefault();
     const p = this.point(e);
     if (this.tool === 'fill') {
-      this.commit({ tool: 'fill', color: this.color, x: p[0], y: p[1] });
+      const op = { tool: 'fill', color: this.color, x: p[0], y: p[1] };
+      if (!floodFill(this.layer, this.w, this.h, op.x, op.y, op.color, this.clip, this.enclosedFill)) {
+        this.onFillRefused();
+        return;
+      }
+      this.ops.push(op);
+      this.redoStack = [];
+      this.onChange();
       return;
     }
     this.liveCanvas.setPointerCapture(e.pointerId);

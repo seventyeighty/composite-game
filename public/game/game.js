@@ -55,29 +55,56 @@ function cutOut(img) {
     if (i >= W) visit(i - W);
     if (i < W * (H - 1)) visit(i + W);
   }
-  const mask = document.createElement('canvas');
-  mask.width = W; mask.height = H;
-  const mctx = mask.getContext('2d');
-  const m = mctx.createImageData(W, H);
-  let any = false;
-  for (let i = 0; i < W * H; i++) {
-    if (outside[i]) continue;
-    any = true;
-    m.data[i * 4] = 253; m.data[i * 4 + 1] = 251; m.data[i * 4 + 2] = 246; m.data[i * 4 + 3] = 255;
+  // Group the drawn pixels into separate blobs. Big blobs get the full sticker border;
+  // small separate marks (motion lines, sparkles, dots) only get a thin edge so they stay small.
+  const SMALL = 400;
+  const label = new Int32Array(W * H).fill(-1);
+  const sizes = [];
+  for (let start = 0; start < W * H; start++) {
+    if (outside[start] || label[start] !== -1) continue;
+    const id = sizes.length;
+    let count = 0;
+    label[start] = id;
+    stack.push(start);
+    while (stack.length) {
+      const i = stack.pop(), x = i % W;
+      count++;
+      const near = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i >= W ? i - W : -1, i < W * (H - 1) ? i + W : -1];
+      for (const j of near) if (j >= 0 && !outside[j] && label[j] === -1) { label[j] = id; stack.push(j); }
+    }
+    sizes.push(count);
   }
-  if (!any) return img;
-  mctx.putImageData(m, 0, 0);
-  // paper backing = the mask grown outward by EDGE pixels
+  const makeMask = (keep) => {
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const cx = c.getContext('2d');
+    const m = cx.createImageData(W, H);
+    let any = false;
+    for (let i = 0; i < W * H; i++) {
+      if (outside[i] || !keep(sizes[label[i]])) continue;
+      any = true;
+      m.data[i * 4] = 253; m.data[i * 4 + 1] = 251; m.data[i * 4 + 2] = 246; m.data[i * 4 + 3] = 255;
+    }
+    cx.putImageData(m, 0, 0);
+    return any ? c : null;
+  };
+  const mask = makeMask((n) => n >= SMALL);
+  const smallMask = makeMask((n) => n < SMALL);
+  if (!mask && !smallMask) return img;
+
+  // paper backing = the mask grown outward in even rings
   const backing = document.createElement('canvas');
   backing.width = W; backing.height = H;
   const bctx = backing.getContext('2d');
-  // grow in rings so thin lines get an even border with no gaps
-  for (const r of [EDGE / 3, (EDGE * 2) / 3, EDGE]) {
-    for (let a = 0; a < 16; a++) bctx.drawImage(mask, Math.round(Math.cos(a * Math.PI / 8) * r), Math.round(Math.sin(a * Math.PI / 8) * r));
-  }
-  bctx.drawImage(mask, 0, 0);
-  // The backing casts a soft shadow, like cut paper lying on the page. The paper edge separates
-  // a piece from a dark background, the shadow separates it from a light one.
+  const grow = (m, edge) => {
+    for (const r of [edge / 3, (edge * 2) / 3, edge]) {
+      for (let a = 0; a < 16; a++) bctx.drawImage(m, Math.round(Math.cos(a * Math.PI / 8) * r), Math.round(Math.sin(a * Math.PI / 8) * r));
+    }
+    bctx.drawImage(m, 0, 0);
+  };
+  if (mask) grow(mask, EDGE);
+  if (smallMask) grow(smallMask, 3);
+  // The backing casts a soft shadow, like cut paper lying on the page.
   const out = document.createElement('canvas');
   out.width = W; out.height = H;
   const octx = out.getContext('2d');
@@ -514,6 +541,8 @@ const on = {
     $('lg-back').hidden = soft || !m.ghosts.some((g) => !g.front);
     $('lg-front').hidden = soft || !m.ghosts.some((g) => g.front);
     sketch.clip = clip;
+    sketch.enclosedFill = m.slot.guide !== 'strip' && m.slot.guide !== 'full';
+    sketch.onFillRefused = () => toast('Fill works inside a closed shape. Draw an outline first, then fill it.');
     const dark = isDark(m.page);
     paintPage(sketch.guide, m.page, m.canvas.w, m.canvas.h);
     drawGhosts(sketch.guide, m.ghosts, m.canvas, soft, dark);
