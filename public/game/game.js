@@ -68,11 +68,23 @@ function cutOut(img) {
   }
   if (!any) return img;
   mctx.putImageData(m, 0, 0);
+  // paper backing = the mask grown outward by EDGE pixels
+  const backing = document.createElement('canvas');
+  backing.width = W; backing.height = H;
+  const bctx = backing.getContext('2d');
+  for (let a = 0; a < 8; a++) bctx.drawImage(mask, Math.round(Math.cos(a * Math.PI / 4) * EDGE), Math.round(Math.sin(a * Math.PI / 4) * EDGE));
+  bctx.drawImage(mask, 0, 0);
+  // The backing casts a soft shadow, like cut paper lying on the page. The paper edge separates
+  // a piece from a dark background, the shadow separates it from a light one.
   const out = document.createElement('canvas');
   out.width = W; out.height = H;
   const octx = out.getContext('2d');
-  for (let a = 0; a < 8; a++) octx.drawImage(mask, Math.round(Math.cos(a * Math.PI / 4) * EDGE), Math.round(Math.sin(a * Math.PI / 4) * EDGE));
-  octx.drawImage(mask, 0, 0);
+  octx.save();
+  octx.shadowColor = 'rgba(20,24,32,0.5)';
+  octx.shadowBlur = 7;
+  octx.shadowOffsetY = 3;
+  octx.drawImage(backing, 0, 0);
+  octx.restore();
   octx.drawImage(img, 0, 0, W, H);
   return out;
 }
