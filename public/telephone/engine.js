@@ -10,9 +10,9 @@ export const CANVAS = { w: 800, h: 600 };
 
 // The layers each chain builds, back to front.
 //   fixed: the game decides where it goes. place: the writer drags an outline into position.
-const BACKDROP = { key: 'backdrop', name: 'the backdrop', guide: 'full', rect: [0, 0, 800, 600], depth: 0 };
-const MIDGROUND = { key: 'mid', name: 'a layer across the middle', guide: 'strip', rect: [0, 230, 800, 240], depth: 2,
-  ask: 'Something goes across the middle of this picture. What is it?', example: 'a row of very suspicious hedges' };
+// The first layer is the setting, drawn from the opening line as a strip across the middle.
+// Nobody draws a full-page background: the picture sits on plain paper.
+const SETTING = { key: 'setting', name: 'where it happens', guide: 'strip', rect: [0, 180, 800, 320], depth: 1 };
 const CHARACTER = { key: 'char', name: 'a character', guide: 'personR', place: true, rect: [300, 170, 190, 370], depth: 5,
   ask: 'Someone is about to appear. Put them where you like, then say who they are.', example: 'someone praying to the giant eye' };
 const SECOND = { key: 'char2', name: 'a character or a thing', guide: 'personL', place: true, choice: true, rect: [520, 220, 180, 330], depth: 6,
@@ -23,8 +23,8 @@ const OVERLAY = { key: 'overlay', name: 'something on top', guide: 'box', place:
   ask: 'One last thing goes on top of everything. Place it and say what it is.', example: 'a speech bubble saying "not again"' };
 
 export const LENGTHS = {
-  full: [BACKDROP, MIDGROUND, CHARACTER, SECOND, FOREGROUND, OVERLAY],
-  short: [BACKDROP, CHARACTER, FOREGROUND, OVERLAY],
+  full: [SETTING, CHARACTER, SECOND, FOREGROUND, OVERLAY],
+  short: [SETTING, CHARACTER, FOREGROUND, OVERLAY],
 };
 
 export const IDEAS = [
@@ -35,10 +35,7 @@ export const IDEAS = [
   'a submarine tour', 'a talent show', 'the last day of summer', 'a haunted car wash',
 ];
 
-export const PAGES = [
-  ['#F6E3C6', '#E9C79C'], ['#A9DDF6', '#F4E2B6'], ['#F8E7EE', '#E8CCD8'], ['#DDF3EC', '#BFE3D6'],
-  ['#E6EDF3', '#C8D5E1'], ['#FFF1C9', '#FFD39A'], ['#F3EEE4', '#E0D4BE'], ['#EAF1F4', '#CFDCE2'],
-];
+export const PAGES = [['#FDFBF6', '#FDFBF6']];
 
 const mod = (a, n) => ((a % n) + n) % n;
 

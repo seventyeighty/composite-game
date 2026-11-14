@@ -2,7 +2,7 @@
 
 import { Sketch } from './sketch.js';
 import { drawGuide, drawGhosts, drawOutOfBounds, paintPage, isDark } from './guides.js';
-import { START_COLORS, clipFor, treat, pageCSS } from './layers.js';
+import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, setupView } from './layers.js';
 
 const $ = (id) => document.getElementById(id);
 const SCREENS = ['home', 'lobby', 'draw', 'wait', 'reveal', 'end'];
@@ -225,6 +225,8 @@ $('copy-link').addEventListener('click', async () => {
 });
 
 // --- drawing ---------------------------------------------------------------
+
+const applyView = setupView('composite-view-scene', 'full', () => sketch && sketch.guideCanvas);
 
 function buildColors() {
   const host = $('colors');
@@ -470,10 +472,13 @@ const on = {
     sketch.enclosedFill = m.slot.guide !== 'strip' && m.slot.guide !== 'full';
     sketch.onFillRefused = () => toast('Fill works inside a closed shape. Draw an outline first, then fill it.');
     const dark = isDark(m.page);
+    $('lg-back').hidden = !ghosts.some((g) => !g.front);
     paintPage(sketch.guide, m.page, m.canvas.w, m.canvas.h);
     drawGhosts(sketch.guide, ghosts, m.canvas, soft, dark);
-    drawOutOfBounds(sketch.guide, clip, m.canvas, dark);
-    drawGuide(sketch.guide, m.slot, m.canvas, dark);
+    const over = overlayCanvas($('sketch'), m.canvas);
+    drawOutOfBounds(over, clip, m.canvas, dark);
+    drawGuide(over, m.slot, m.canvas, dark);
+    applyView();
     window.__slot = m.slot; // read by the automated tests
     let startColor = START_COLORS[m.slot.id % START_COLORS.length];
     if (startColor === '#1F2430' && dark) startColor = '#FFFFFF';

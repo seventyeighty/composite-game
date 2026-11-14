@@ -108,37 +108,39 @@ function label(ctx, text, x0, y0, x1, y1, dark = false) {
   ctx.fillText(text, x0 + w / 2, y0 + h / 2);
 }
 
-// Where other pieces will cover this one. Only pieces in front are shown (pieces behind don't change
-// what you should draw), as faint dashed outlines with a small label in the corner, so the area you are
-// drawing in stays clear.
+// Where the other pieces go.
+// Normal pieces: pale stripes are behind yours, bold stripes will cover yours.
+// soft (used for the background, which everything sits on): light dashed boxes only,
+// so the page still reads as something to draw all over.
 export function drawGhosts(ctx, ghosts, canvas, soft = false, dark = false) {
   const inset = 4;
-  const labels = [];
-  const front = ghosts.filter((g) => g.front || soft);
-  for (const g of front) {
+  const sorted = [...ghosts].sort((a, b) => Number(a.front) - Number(b.front));
+  for (const g of sorted) {
     const [x, y, w, h] = g.rect;
     const x0 = Math.max(x, inset), y0 = Math.max(y, inset);
     const x1 = Math.min(x + w, canvas.w - inset), y1 = Math.min(y + h, canvas.h - inset);
     ctx.save();
-    roundRect(ctx, x0, y0, x1 - x0, y1 - y0, 18);
-    ctx.fillStyle = dark ? 'rgba(255,255,255,0.05)' : 'rgba(96,106,122,0.06)';
-    ctx.fill();
-    ctx.setLineDash([8, 8]);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = dark ? 'rgba(244,241,232,0.45)' : 'rgba(74,81,96,0.45)';
-    ctx.stroke();
-    ctx.restore();
-    // one small label per outline, top-left corner, skipped where it would sit on another label
-    const lx = x0 + 10, ly = y0 + 8, lw = 150, lh = 24;
-    if (x1 - x0 > lw && y1 - y0 > 40 && !labels.some((r) => lx < r[0] + r[2] && lx + lw > r[0] && ly < r[1] + r[3] && ly + lh > r[1])) {
-      labels.push([lx, ly, lw, lh]);
-      ctx.save();
-      ctx.font = '17px "Patrick Hand", system-ui, sans-serif';
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = dark ? 'rgba(244,241,232,0.8)' : 'rgba(74,81,96,0.85)';
-      ctx.fillText('covered later', lx, ly);
-      ctx.restore();
+    roundRect(ctx, x0, y0, x1 - x0, y1 - y0, 22);
+    if (soft) {
+      ctx.setLineDash([10, 9]);
+      ctx.strokeStyle = 'rgba(96,106,122,0.55)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      label(ctx, 'a piece goes here', x0, y0, x1, y1, dark);
+    } else {
+      // see-through, so the page colour still shows
+      ctx.fillStyle = dark ? (g.front ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)') : (g.front ? 'rgba(236,239,243,0.6)' : 'rgba(246,247,249,0.45)');
+      ctx.fill();
+      ctx.fillStyle = stripePattern(ctx, g.front, dark);
+      ctx.fill();
+      const rgb = dark ? '244,241,232' : '96,106,122';
+      ctx.strokeStyle = g.front ? `rgba(${rgb},0.6)` : `rgba(${rgb},0.3)`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      label(ctx, g.front ? 'covers yours' : 'behind yours', x0, y0, x1, y1, dark);
     }
+    ctx.restore();
   }
 }
 

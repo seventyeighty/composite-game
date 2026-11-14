@@ -2,7 +2,7 @@
 
 import { Sketch } from '/game/sketch.js';
 import { drawGuide, drawGhosts, drawOutOfBounds, paintPage } from '/game/guides.js';
-import { START_COLORS, clipFor, treat, pageCSS } from '/game/layers.js';
+import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, setupView } from '/game/layers.js';
 import { CANVAS, IDEAS, createGame, taskFor, submitWrite, submitDraw, turnComplete, nextTurn } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
@@ -12,6 +12,7 @@ const COLORS = [
   ['#FFD23F', 'Yellow'], ['#46A758', 'Green'], ['#12A594', 'Teal'], ['#3B82F6', 'Blue'], ['#6E56CF', 'Purple'], ['#E667AA', 'Pink'],
 ];
 const DRAW_HOW = {
+  setting: 'Draw where this happens across the middle of the page, from edge to edge, and fill it in. Everything else goes in front of it.',
   full: 'Draw this as the backdrop and cover the whole page. Everything else will be added in front of it later.',
   strip: 'Draw across the dotted strip from edge to edge and fill it in. Give the top edge a shape. The fill bucket helps.',
   personR: 'Draw them inside the dotted outline, facing the way the arrow points. Anything in the shaded part gets cut off.',
@@ -202,7 +203,7 @@ async function startWrite(t) {
   if (t.opening) {
     $('wr-kind').textContent = 'START A PICTURE';
     $('wr-ask').textContent = 'Write one line to start a scene.';
-    $('wr-how').textContent = 'Keep it simple. The next player draws it as the backdrop, then everyone builds on it, layer by layer.';
+    $('wr-how').textContent = 'Keep it simple. The next player draws where it happens, then everyone builds on it, layer by layer.';
     $('wr-label').textContent = 'Your line';
     input.placeholder = 'e.g. a quiet campsite at night';
     place = null;
@@ -334,6 +335,8 @@ $('wr-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('wr-d
 
 // --- draw turn -------------------------------------------------------------------
 
+const applyView = setupView('composite-view-telephone', 'faint', () => sketch && sketch.guideCanvas);
+
 function buildColors() {
   const host = $('colors');
   COLORS.forEach(([hex, name]) => {
@@ -376,7 +379,7 @@ async function startDraw(t) {
   $('draw-kind').textContent = `DRAW: ${t.spec.name.toUpperCase()}`;
   $('draw-prompt').textContent = `"${t.instruction}"`;
   $('draw-from').textContent = t.layerIndex === 0 ? `the opening line, by ${t.writer}` : `written by ${t.writer}`;
-  $('draw-how').textContent = DRAW_HOW[t.guide] || DRAW_HOW.box;
+  $('draw-how').textContent = (t.layerIndex === 0 ? DRAW_HOW.setting : DRAW_HOW[t.guide]) || DRAW_HOW.box;
   $('lg-front').hidden = !t.ghosts.length;
   const slot = { guide: t.guide, rect: t.rect };
   const clip = clipFor(slot, CANVAS);
@@ -387,12 +390,14 @@ async function startDraw(t) {
   window.__slot = { ...slot, prompt: t.instruction, spec: t.spec.key }; // read by the automated tests
   await paintBelow(sketch.guide, t);
   drawGhosts(sketch.guide, t.ghosts, CANVAS);
-  drawOutOfBounds(sketch.guide, clip, CANVAS);
-  sketch.guide.save();
-  sketch.guide.shadowColor = 'rgba(255,255,255,0.95)';
-  sketch.guide.shadowBlur = 5;
-  drawGuide(sketch.guide, slot, CANVAS);
-  sketch.guide.restore();
+  const over = overlayCanvas($('sketch'), CANVAS);
+  drawOutOfBounds(over, clip, CANVAS);
+  over.save();
+  over.shadowColor = 'rgba(255,255,255,0.95)';
+  over.shadowBlur = 5;
+  drawGuide(over, slot, CANVAS);
+  over.restore();
+  applyView();
   const startColor = START_COLORS[(t.chain + t.layerIndex) % START_COLORS.length];
   sketch.color = startColor;
   document.querySelectorAll('.swatch').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.color === startColor)));

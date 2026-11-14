@@ -9,11 +9,11 @@ layers are stacked into one picture.
 - **Scene mode**, playable with friends: make a room, share the link, draw, watch the reveal, guess the scene.
   - `server.js`: serves the pages and runs the rooms over WebSockets. Rooms live in memory, so they are lost if the server restarts.
   - `data/scenes.js`: the scenes. Each has a secret, a page color, and eight slots with a prompt, a guide shape and a stacking depth.
-    Every scene is a diorama: a backdrop over the whole page, a midground strip, characters, a foreground strip that
-    covers their feet, and an overlay on top. Layouts are built so pieces overlap.
+    Every scene is a diorama on plain paper: a midground strip, characters, a foreground strip that covers their feet,
+    and an overlay on top. Nobody draws a full-page background. Layouts are built so pieces overlap.
   - `public/index.html` and `public/game/`: the game pages (lobby, drawing tools, reveal, guessing, gallery).
 - **Layer telephone** (`public/telephone/`), pass and play on one device for now. Every player starts a picture
-  with one line. Each picture is built back to front, one layer at a time: someone writes what the next layer is
+  with one line, which the next player draws as the setting (a strip across the middle). Each picture is built back to front, one layer at a time: someone writes what the next layer is
   (seeing the picture so far, but none of the earlier text, and placing an outline for characters and things),
   then someone else draws it. At the end each picture plays back layer by layer with the instructions that caused it.
   - `engine.js`: the rules (chains, turns, who works on what), with no screen code, so the server can use it later.

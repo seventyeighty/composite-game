@@ -129,3 +129,32 @@ export function treat(img, guide) {
 export function pageCSS(page) {
   return page ? `linear-gradient(${page[0]}, ${page[1]})` : '';
 }
+
+// A canvas above the drawing for the dotted guide and the cut-off shading, so they stay visible
+// while the picture underneath can be faded or hidden with the view buttons.
+export function overlayCanvas(host, size) {
+  const c = document.createElement('canvas');
+  c.width = size.w; c.height = size.h;
+  c.className = 'sk-over';
+  c.setAttribute('aria-hidden', 'true');
+  host.appendChild(c);
+  return c.getContext('2d');
+}
+
+// "Full / Faint / Hidden" for what sits under the drawing. Remembers the choice between turns.
+export function setupView(storageKey, fallback, getTarget) {
+  const buttons = [...document.querySelectorAll('[data-view]')];
+  let mode = fallback;
+  try { mode = localStorage.getItem(storageKey) || fallback; } catch { /* storage unavailable */ }
+  const apply = () => {
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
+    const el = getTarget();
+    if (el) el.style.opacity = mode === 'full' ? '1' : mode === 'faint' ? '0.4' : '0';
+  };
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    mode = b.dataset.view;
+    try { localStorage.setItem(storageKey, mode); } catch { /* storage unavailable */ }
+    apply();
+  }));
+  return apply;
+}
