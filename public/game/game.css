@@ -113,8 +113,9 @@ button:disabled{opacity:.5;cursor:default}
 .stack .s1{transform:rotate(-2.2deg)}
 .stack .s2{transform:rotate(1.6deg);background:#F9F6EF}
 .stack .paper{position:relative}
-.paper .drop{animation:drop .55s cubic-bezier(.2,.9,.3,1.25) both}
-@keyframes drop{from{opacity:0;transform:translateY(-9%) rotate(-3deg) scale(1.08)}to{opacity:1;transform:none}}
+.paper .plane{position:absolute;inset:0;will-change:transform}
+.paper .drop{animation:drop .6s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes drop{from{opacity:0;transform:translateY(-14%) scale(1.06)}to{opacity:1;transform:none}}
 .tag{position:absolute;right:-6px;bottom:-14px;max-width:86%;background:var(--yellow);padding:6px 14px 8px;border-radius:8px;transform:rotate(1.5deg);box-shadow:0 4px 10px rgba(0,0,0,.3);font-size:17px;line-height:1.2}
 .tag-name{font-family:'Caveat Brush',cursive;font-size:25px;line-height:1;margin-right:4px}
 .layers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}

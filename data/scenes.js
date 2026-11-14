@@ -1,19 +1,25 @@
 // Scenes for scene mode. The canvas is 800 x 600.
 //
-// Each scene has a secret (what the whole picture is), a page (the colored paper the game supplies,
-// top and bottom colors), and eight slots listed in priority order: the first six are used in every
-// game, the last two are added when there are more players.
+// Every scene is a diorama: flat paper planes at different depths, like a paper theater.
+//   backdrop    the far distance, drawn over the whole page (depth 0)
+//   midground   a strip across the middle that characters stand in front of (depth 1-2)
+//   characters  stickers in the middle depths (3-7)
+//   foreground  a strip across the bottom that covers the characters' feet (depth 8)
+//   overlay     something on top of everything: a speech bubble, a bird, weather (depth 9-10)
+// Layouts are built so pieces overlap: something should always be in front of something else.
 //
-// Nobody draws a full-page background. The setting is built from sticker slots (things in the scene)
-// and strips (a ground behind the characters or a foreground in front of them).
+// Slots are listed in priority order. The first six are used in every game, the last two are
+// added when there are more players.
 //
 // slot fields:
 //   label   short name shown at the reveal
 //   prompt  what the player is told to draw (one sentence, with something to invent)
 //   kind    'scenery' is drawn in the first part in small rooms, 'character' in the second
 //   depth   stacking order, 0 at the back
-//   guide   shape of the dotted guide: personR, personL, box, strip
+//   guide   shape of the dotted guide: full, personR, personL, box, strip
 //   rect    [x, y, width, height] of the guide
+
+const FULL = [0, 0, 800, 600];
 
 module.exports = [
   {
@@ -21,14 +27,14 @@ module.exports = [
     secret: 'A chef screaming at a waiter in a kitchen that is on fire',
     page: ['#F6E3C6', '#E9C79C'],
     slots: [
+      { label: 'The kitchen', prompt: 'The kitchen wall behind everything, where something is very much on fire', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The chef', prompt: 'A furious chef screaming at someone to the right', kind: 'character', depth: 5, guide: 'personR', rect: [110, 170, 200, 390] },
-      { label: 'The waiter', prompt: 'A nervous waiter being yelled at, facing left', kind: 'character', depth: 6, guide: 'personL', rect: [480, 210, 180, 350] },
-      { label: 'The oven', prompt: 'The oven, which is very much on fire', kind: 'scenery', depth: 2, guide: 'box', rect: [550, 40, 220, 240] },
-      { label: 'The problem', prompt: 'The thing the chef is angry about', kind: 'character', depth: 7, guide: 'box', rect: [330, 330, 130, 140] },
+      { label: 'The waiter', prompt: 'A nervous waiter being yelled at, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [480, 210, 180, 350] },
+      { label: 'The shelves', prompt: 'Shelves across the middle, packed with things that should not be in a kitchen (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 170, 800, 200] },
       { label: 'The counter', prompt: 'A counter across the bottom with the worst dish this kitchen ever made on it (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 480, 800, 120] },
-      { label: 'The window', prompt: 'A window with someone watching through it who should not be there', kind: 'scenery', depth: 1, guide: 'box', rect: [30, 30, 230, 150] },
-      { label: 'The ceiling', prompt: 'Something hanging from the ceiling that really should not be', kind: 'scenery', depth: 3, guide: 'box', rect: [300, 20, 200, 120] },
-      { label: 'The yelling', prompt: 'What the chef is yelling, in a speech bubble (symbols welcome)', kind: 'character', depth: 9, guide: 'box', rect: [270, 150, 230, 140] },
+      { label: 'The problem', prompt: 'The thing the chef is angry about', kind: 'character', depth: 6, guide: 'box', rect: [330, 330, 130, 140] },
+      { label: 'The yelling', prompt: 'What the chef is yelling, in a speech bubble (symbols welcome)', kind: 'character', depth: 9, guide: 'box', rect: [250, 50, 240, 130] },
+      { label: 'The hatch', prompt: 'Someone watching through the serving hatch who should not be there', kind: 'scenery', depth: 3, guide: 'box', rect: [570, 40, 200, 150] },
     ],
   },
   {
@@ -36,14 +42,14 @@ module.exports = [
     secret: 'A lifeguard rescuing a shark that cannot swim',
     page: ['#A9DDF6', '#F4E2B6'],
     slots: [
+      { label: 'The sky', prompt: 'The sky over the beach, on the hottest day ever recorded', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The lifeguard', prompt: 'A heroic lifeguard sprinting to the right', kind: 'character', depth: 5, guide: 'personR', rect: [70, 180, 190, 370] },
-      { label: 'The shark', prompt: 'A panicking shark that clearly cannot swim', kind: 'character', depth: 4, guide: 'box', rect: [430, 290, 310, 200] },
-      { label: 'The sea', prompt: 'The sea across the bottom of the picture, with something odd floating in it (fill it in!)', kind: 'scenery', depth: 7, guide: 'strip', rect: [0, 450, 800, 150] },
-      { label: 'The sun', prompt: 'The sun, on the hottest day ever recorded', kind: 'scenery', depth: 1, guide: 'box', rect: [560, 30, 200, 170] },
-      { label: 'The sunbather', prompt: 'A sunbather who refuses to look up from their phone', kind: 'character', depth: 3, guide: 'box', rect: [280, 200, 150, 200] },
-      { label: 'The float', prompt: "The world's least useful flotation device", kind: 'character', depth: 8, guide: 'box', rect: [290, 410, 130, 110] },
-      { label: 'The sign', prompt: 'A warning sign for this beach', kind: 'scenery', depth: 9, guide: 'box', rect: [40, 30, 230, 140] },
-      { label: 'The seagull', prompt: 'A seagull who is enjoying this far too much', kind: 'character', depth: 2, guide: 'box', rect: [320, 40, 180, 120] },
+      { label: 'The shark', prompt: 'A panicking shark that clearly cannot swim', kind: 'character', depth: 4, guide: 'box', rect: [430, 250, 310, 220] },
+      { label: 'The dunes', prompt: 'The beach and sand dunes across the middle, with something buried in them (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 250, 800, 200] },
+      { label: 'The sea', prompt: 'The sea across the bottom, with big waves (fill it in!)', kind: 'scenery', depth: 7, guide: 'strip', rect: [0, 410, 800, 190] },
+      { label: 'The float', prompt: "The world's least useful flotation device", kind: 'character', depth: 8, guide: 'box', rect: [290, 380, 140, 110] },
+      { label: 'The seagull', prompt: 'A seagull who is enjoying this far too much', kind: 'character', depth: 9, guide: 'box', rect: [320, 40, 180, 120] },
+      { label: 'The sign', prompt: 'A warning sign for this beach', kind: 'scenery', depth: 3, guide: 'box', rect: [40, 40, 220, 140] },
     ],
   },
   {
@@ -51,14 +57,14 @@ module.exports = [
     secret: 'A wedding where the cake has come alive',
     page: ['#F8E7EE', '#E8CCD8'],
     slots: [
+      { label: 'The venue', prompt: 'The inside of a very fancy wedding venue', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The newlywed', prompt: 'A horrified newlywed, facing right', kind: 'character', depth: 5, guide: 'personR', rect: [70, 180, 190, 380] },
       { label: 'The cake', prompt: 'A wedding cake with arms and a bad attitude', kind: 'character', depth: 4, guide: 'box', rect: [310, 170, 220, 380] },
-      { label: 'The guest', prompt: 'A guest filming everything on their phone, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [590, 220, 170, 330] },
+      { label: 'The guests', prompt: 'Tables of guests across the middle, all frozen in shock (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 260, 800, 170] },
       { label: 'The buffet', prompt: 'A buffet table across the bottom that has been trampled (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 490, 800, 110] },
-      { label: 'The decorations', prompt: 'Decorations strung across the top, slightly on fire', kind: 'scenery', depth: 1, guide: 'strip', rect: [0, 0, 800, 90] },
-      { label: 'The band', prompt: 'A band that has kept playing through all of this', kind: 'scenery', depth: 2, guide: 'box', rect: [560, 95, 210, 125] },
+      { label: 'The filming guest', prompt: 'A guest filming everything on their phone, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [590, 220, 170, 330] },
       { label: 'The shouting', prompt: 'What the cake is shouting, in a speech bubble', kind: 'character', depth: 9, guide: 'box', rect: [290, 40, 240, 120] },
-      { label: 'The ring bearer', prompt: 'A tiny ring bearer who has seen everything', kind: 'character', depth: 6, guide: 'box', rect: [250, 400, 110, 150] },
+      { label: 'The decorations', prompt: 'Decorations strung across the top, slightly on fire', kind: 'scenery', depth: 3, guide: 'strip', rect: [0, 0, 800, 90] },
     ],
   },
   {
@@ -66,14 +72,14 @@ module.exports = [
     secret: 'Astronauts discovering that the moon is made of cheese',
     page: ['#0E1433', '#24306A'],
     slots: [
+      { label: 'Space', prompt: 'Outer space, with planet Earth looking concerned', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The hungry astronaut', prompt: 'An astronaut taking a big bite out of something, facing right', kind: 'character', depth: 5, guide: 'personR', rect: [100, 180, 190, 370] },
       { label: 'The worried astronaut', prompt: 'A very worried astronaut, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [500, 190, 180, 360] },
-      { label: 'The ground', prompt: 'A ground made entirely of cheese (fill it in!)', kind: 'scenery', depth: 3, guide: 'strip', rect: [0, 440, 800, 160] },
-      { label: 'Earth', prompt: 'Planet Earth, looking concerned', kind: 'scenery', depth: 1, guide: 'box', rect: [310, 40, 200, 180] },
+      { label: 'The mountains', prompt: 'Cheese mountains across the middle (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 250, 800, 200] },
+      { label: 'The ground', prompt: 'The cheese ground across the bottom, with a big bite taken out of it (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 470, 800, 130] },
       { label: 'The flag', prompt: 'A flag for a country that does not exist', kind: 'character', depth: 6, guide: 'box', rect: [330, 300, 140, 190] },
-      { label: 'The ship', prompt: 'A spaceship that has been parked very badly', kind: 'scenery', depth: 2, guide: 'box', rect: [590, 30, 180, 150] },
       { label: 'The local', prompt: 'A mouse in a tiny space suit, very upset about all this', kind: 'character', depth: 9, guide: 'box', rect: [40, 40, 200, 130] },
-      { label: 'The floater', prompt: 'Something floating in space that should not be there', kind: 'scenery', depth: 0, guide: 'box', rect: [20, 190, 150, 130] },
+      { label: 'The ship', prompt: 'A spaceship that has been parked very badly', kind: 'scenery', depth: 3, guide: 'box', rect: [590, 30, 180, 150] },
     ],
   },
   {
@@ -81,14 +87,14 @@ module.exports = [
     secret: 'A barber giving someone a terrible haircut',
     page: ['#DDF3EC', '#BFE3D6'],
     slots: [
+      { label: 'The shop', prompt: 'The wall of the barber shop, covered in photos of terrible haircuts', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The barber', prompt: 'A barber who is far too confident, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [530, 170, 190, 390] },
       { label: 'The customer', prompt: 'Someone in a barber chair whose haircut is going very wrong', kind: 'character', depth: 4, guide: 'box', rect: [260, 180, 250, 320] },
-      { label: 'The mirror', prompt: 'A mirror on the wall showing something it should not', kind: 'scenery', depth: 1, guide: 'box', rect: [40, 40, 220, 190] },
-      { label: 'The floor', prompt: 'The floor across the bottom, covered in something that is not hair (fill it in!)', kind: 'scenery', depth: 3, guide: 'strip', rect: [0, 480, 800, 120] },
+      { label: 'The mirror', prompt: 'A long mirror across the middle, reflecting something it should not (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 140, 800, 180] },
+      { label: 'The floor', prompt: 'The floor across the bottom, covered in something that is not hair (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 490, 800, 110] },
       { label: 'The tool', prompt: "The barber's most dangerous tool, in mid-air", kind: 'character', depth: 7, guide: 'box', rect: [420, 110, 150, 120] },
-      { label: 'The waiting customer', prompt: 'Someone waiting their turn, terrified, facing right', kind: 'character', depth: 2, guide: 'personR', rect: [40, 250, 150, 300] },
-      { label: 'The prices', prompt: 'A sign with the prices, which make no sense', kind: 'scenery', depth: 1, guide: 'box', rect: [300, 30, 190, 110] },
-      { label: 'The pet', prompt: "The shop's pet, which is trying to help", kind: 'character', depth: 8, guide: 'box', rect: [180, 400, 150, 120] },
+      { label: 'The pet', prompt: "The shop's pet, which is trying to help", kind: 'character', depth: 9, guide: 'box', rect: [180, 430, 150, 120] },
+      { label: 'The waiting customer', prompt: 'Someone waiting their turn, terrified, facing right', kind: 'character', depth: 3, guide: 'personR', rect: [40, 250, 150, 300] },
     ],
   },
   {
@@ -96,14 +102,14 @@ module.exports = [
     secret: 'A dog interviewing for a job at a bank',
     page: ['#E6EDF3', '#C8D5E1'],
     slots: [
+      { label: 'The office', prompt: 'The office wall, with an award the company is far too proud of', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The interviewer', prompt: 'A very serious interviewer, facing right', kind: 'character', depth: 4, guide: 'personR', rect: [90, 170, 190, 340] },
       { label: 'The candidate', prompt: 'A dog in a suit, trying very hard, facing left', kind: 'character', depth: 4, guide: 'personL', rect: [500, 180, 190, 330] },
+      { label: 'The window', prompt: 'A big window across the middle, with a city outside that is not doing well (fill it in!)', kind: 'scenery', depth: 1, guide: 'strip', rect: [0, 110, 800, 210] },
       { label: 'The desk', prompt: "A desk across the bottom covered in the candidate's paperwork (fill it in!)", kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 420, 800, 180] },
-      { label: 'The window', prompt: 'The view out of the office window, which is not great', kind: 'scenery', depth: 1, guide: 'box', rect: [300, 40, 220, 170] },
-      { label: 'The award', prompt: 'An award on the wall that the company is far too proud of', kind: 'scenery', depth: 1, guide: 'box', rect: [40, 30, 200, 130] },
       { label: 'The resume', prompt: "The candidate's resume, held up so everyone can see it", kind: 'character', depth: 6, guide: 'box', rect: [330, 250, 140, 160] },
-      { label: 'The mug', prompt: 'A coffee mug with a slogan on it', kind: 'character', depth: 9, guide: 'box', rect: [200, 340, 110, 100] },
-      { label: 'The plant', prompt: 'An office plant that has given up', kind: 'scenery', depth: 2, guide: 'box', rect: [600, 30, 170, 150] },
+      { label: 'The mug', prompt: 'A coffee mug on the desk with a slogan on it', kind: 'character', depth: 9, guide: 'box', rect: [200, 380, 110, 100] },
+      { label: 'The plant', prompt: 'An office plant that has given up', kind: 'scenery', depth: 3, guide: 'box', rect: [620, 230, 150, 190] },
     ],
   },
   {
@@ -111,14 +117,14 @@ module.exports = [
     secret: 'A tour of a haunted house where the ghost is scared of the tourists',
     page: ['#3B2F4A', '#1E1828'],
     slots: [
+      { label: 'The house', prompt: 'The inside of the haunted house, with a portrait whose eyes follow you', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The guide', prompt: 'A cheerful tour guide pointing to the right', kind: 'character', depth: 5, guide: 'personR', rect: [70, 190, 180, 360] },
       { label: 'The ghost', prompt: 'A ghost who is absolutely terrified', kind: 'character', depth: 4, guide: 'box', rect: [460, 130, 260, 300] },
+      { label: 'The furniture', prompt: 'Old furniture across the middle, covered in dusty sheets (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 280, 800, 190] },
+      { label: 'The floor', prompt: 'Creaky floorboards across the bottom, with something poking through (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 480, 800, 120] },
       { label: 'The tourist', prompt: 'A tourist taking a photo with the flash on, facing right', kind: 'character', depth: 6, guide: 'personR', rect: [260, 230, 150, 320] },
-      { label: 'The portrait', prompt: 'A portrait on the wall whose eyes follow you', kind: 'scenery', depth: 1, guide: 'box', rect: [40, 30, 200, 170] },
-      { label: 'The floor', prompt: 'Creaky floorboards across the bottom, with something poking through (fill it in!)', kind: 'scenery', depth: 3, guide: 'strip', rect: [0, 470, 800, 130] },
-      { label: 'The chandelier', prompt: 'A chandelier that is about to fall', kind: 'scenery', depth: 2, guide: 'box', rect: [300, 10, 200, 130] },
-      { label: 'The cat', prompt: 'A black cat that has seen enough', kind: 'character', depth: 8, guide: 'box', rect: [610, 420, 160, 120] },
-      { label: 'The window', prompt: 'A window, with the weather outside doing its very best', kind: 'scenery', depth: 1, guide: 'box', rect: [580, 30, 190, 140] },
+      { label: 'The chandelier', prompt: 'A chandelier that is about to fall', kind: 'scenery', depth: 9, guide: 'box', rect: [300, 10, 200, 130] },
+      { label: 'The cat', prompt: 'A black cat that has seen enough', kind: 'character', depth: 7, guide: 'box', rect: [610, 410, 160, 120] },
     ],
   },
   {
@@ -126,14 +132,14 @@ module.exports = [
     secret: 'A fish taking its driving test under the sea',
     page: ['#7FD3EE', '#1D6FA3'],
     slots: [
-      { label: 'The car', prompt: 'A car that a fish could drive', kind: 'scenery', depth: 4, guide: 'box', rect: [200, 250, 380, 200] },
+      { label: 'The sea', prompt: 'The open sea, with something enormous in the distance', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The fish', prompt: 'A very nervous fish behind the wheel', kind: 'character', depth: 5, guide: 'box', rect: [310, 170, 170, 150] },
       { label: 'The examiner', prompt: 'A crab driving examiner with a clipboard, looking left', kind: 'character', depth: 6, guide: 'box', rect: [600, 250, 180, 210] },
-      { label: 'The seabed', prompt: 'The seabed across the bottom, with something lost in it (fill it in!)', kind: 'scenery', depth: 3, guide: 'strip', rect: [0, 470, 800, 130] },
-      { label: 'The sign', prompt: 'A road sign that only makes sense underwater', kind: 'scenery', depth: 2, guide: 'box', rect: [40, 60, 170, 220] },
-      { label: 'The traffic light', prompt: 'A jellyfish working as a traffic light', kind: 'character', depth: 2, guide: 'box', rect: [500, 30, 160, 170] },
-      { label: 'The other driver', prompt: 'A shark in another car, honking', kind: 'character', depth: 7, guide: 'box', rect: [20, 310, 200, 140] },
+      { label: 'The reef', prompt: 'Coral and seaweed across the middle (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 260, 800, 200] },
+      { label: 'The seabed', prompt: 'The seabed across the bottom, with something lost in it (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 470, 800, 130] },
+      { label: 'The car', prompt: 'A car that a fish could drive', kind: 'scenery', depth: 4, guide: 'box', rect: [200, 250, 380, 200] },
       { label: 'The thought', prompt: 'Bubbles spelling out what the fish is thinking', kind: 'character', depth: 9, guide: 'box', rect: [290, 30, 180, 120] },
+      { label: 'The traffic light', prompt: 'A jellyfish working as a traffic light', kind: 'character', depth: 3, guide: 'box', rect: [500, 30, 160, 170] },
     ],
   },
   {
@@ -141,14 +147,14 @@ module.exports = [
     secret: 'A superhero doing their laundry',
     page: ['#EAF1F4', '#CFDCE2'],
     slots: [
+      { label: 'The laundromat', prompt: 'The laundromat wall, with a sign of very strict rules', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The hero', prompt: 'A superhero folding laundry, facing right', kind: 'character', depth: 5, guide: 'personR', rect: [90, 170, 200, 380] },
-      { label: 'The machine', prompt: 'A washing machine that is clearly possessed', kind: 'scenery', depth: 3, guide: 'box', rect: [460, 200, 230, 260] },
       { label: 'The other customer', prompt: 'Someone waiting for their laundry, not impressed, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [600, 230, 160, 320] },
-      { label: 'The floor', prompt: 'The laundromat floor across the bottom, covered in suds (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 480, 800, 120] },
-      { label: 'The basket', prompt: "The hero's laundry basket, full of embarrassing things", kind: 'character', depth: 7, guide: 'box', rect: [280, 380, 170, 140] },
-      { label: 'The rules', prompt: 'A sign on the wall with the laundromat rules', kind: 'scenery', depth: 1, guide: 'box', rect: [40, 40, 210, 130] },
-      { label: 'The cape', prompt: 'The cape, hung up to dry somewhere it should not be', kind: 'scenery', depth: 1, guide: 'box', rect: [300, 30, 200, 120] },
-      { label: 'The sock', prompt: 'A sock that is making its escape', kind: 'character', depth: 8, guide: 'box', rect: [440, 470, 110, 100] },
+      { label: 'The machines', prompt: 'A row of washing machines across the middle, one of them clearly possessed (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 200, 800, 260] },
+      { label: 'The floor', prompt: 'The floor across the bottom, covered in suds (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 490, 800, 110] },
+      { label: 'The basket', prompt: "The hero's laundry basket, full of embarrassing things", kind: 'character', depth: 6, guide: 'box', rect: [280, 380, 170, 140] },
+      { label: 'The sock', prompt: 'A sock that is making its escape', kind: 'character', depth: 9, guide: 'box', rect: [440, 470, 110, 100] },
+      { label: 'The cape', prompt: 'The cape, hung up to dry somewhere it should not be', kind: 'scenery', depth: 3, guide: 'box', rect: [300, 30, 200, 120] },
     ],
   },
   {
@@ -156,14 +162,14 @@ module.exports = [
     secret: "A dinosaur's birthday party",
     page: ['#FFF1C9', '#FFD39A'],
     slots: [
+      { label: 'The party room', prompt: 'The party room, with a window and a meteor heading this way', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The dinosaur', prompt: 'A dinosaur with tiny arms, leaning in to the right', kind: 'character', depth: 4, guide: 'box', rect: [50, 120, 320, 400] },
       { label: 'The cake', prompt: 'A birthday cake with far too many candles', kind: 'character', depth: 5, guide: 'box', rect: [390, 300, 230, 200] },
-      { label: 'The guest', prompt: 'A party guest in a party hat, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [620, 190, 160, 350] },
+      { label: 'The presents', prompt: 'A pile of presents and balloons across the middle, one of them up to something (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 230, 800, 200] },
       { label: 'The table', prompt: 'A party table across the bottom, absolutely covered in snacks (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 480, 800, 120] },
-      { label: 'The banner', prompt: 'A party banner strung across the top, with a message on it', kind: 'scenery', depth: 1, guide: 'strip', rect: [0, 0, 800, 90] },
-      { label: 'The balloons', prompt: 'Balloons, one of which is up to something', kind: 'scenery', depth: 2, guide: 'box', rect: [420, 100, 180, 170] },
-      { label: 'The present', prompt: 'A present that is moving on its own', kind: 'character', depth: 9, guide: 'box', rect: [250, 420, 140, 120] },
-      { label: 'The window', prompt: 'A window, with a meteor heading this way', kind: 'scenery', depth: 1, guide: 'box', rect: [630, 95, 150, 90] },
+      { label: 'The guest', prompt: 'A party guest in a party hat, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [620, 190, 160, 350] },
+      { label: 'The banner', prompt: 'A party banner strung across the top, with a message on it', kind: 'scenery', depth: 9, guide: 'strip', rect: [0, 0, 800, 90] },
+      { label: 'The present', prompt: 'A present on the table that is moving on its own', kind: 'character', depth: 9, guide: 'box', rect: [250, 420, 140, 120] },
     ],
   },
   {
@@ -171,14 +177,14 @@ module.exports = [
     secret: 'Campers telling ghost stories while a bear eats their marshmallows',
     page: ['#14233B', '#2C3E50'],
     slots: [
+      { label: 'The night sky', prompt: 'The night sky over the campsite, with something odd in it', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The storyteller', prompt: 'A camper telling the scariest story ever, facing right', kind: 'character', depth: 5, guide: 'personR', rect: [70, 210, 170, 340] },
       { label: 'The bear', prompt: 'A bear who has found the marshmallows', kind: 'character', depth: 4, guide: 'box', rect: [480, 170, 280, 330] },
-      { label: 'The campfire', prompt: 'A campfire that is a little too big', kind: 'scenery', depth: 6, guide: 'box', rect: [290, 320, 180, 200] },
-      { label: 'The ground', prompt: 'The forest floor across the bottom, with something hiding in it (fill it in!)', kind: 'scenery', depth: 3, guide: 'strip', rect: [0, 470, 800, 130] },
-      { label: 'The tent', prompt: 'A tent that has seen better days', kind: 'scenery', depth: 2, guide: 'box', rect: [30, 60, 230, 150] },
-      { label: 'The moon', prompt: 'The moon, watching all of this', kind: 'scenery', depth: 1, guide: 'box', rect: [320, 30, 170, 140] },
-      { label: 'The scared camper', prompt: 'A second camper hiding inside a sleeping bag', kind: 'character', depth: 7, guide: 'box', rect: [200, 390, 150, 130] },
-      { label: 'The owl', prompt: 'An owl in a tree, judging everyone', kind: 'character', depth: 2, guide: 'box', rect: [600, 30, 170, 130] },
+      { label: 'The mountains', prompt: 'Mountains and trees across the middle (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 220, 800, 260] },
+      { label: 'The bushes', prompt: 'Bushes across the bottom, with something hiding in them (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 460, 800, 140] },
+      { label: 'The campfire', prompt: 'A campfire that is a little too big (the bushes will cover the bottom of it)', kind: 'scenery', depth: 7, guide: 'box', rect: [300, 320, 180, 200] },
+      { label: 'The story', prompt: 'What the storyteller is saying, in a speech bubble', kind: 'character', depth: 10, guide: 'box', rect: [240, 250, 240, 110] },
+      { label: 'The owl', prompt: 'An owl in a tree, judging everyone', kind: 'character', depth: 3, guide: 'box', rect: [600, 30, 170, 130] },
     ],
   },
   {
@@ -186,14 +192,14 @@ module.exports = [
     secret: 'Airport security finding something ridiculous in a suitcase',
     page: ['#EEF0F2', '#D3D9DF'],
     slots: [
+      { label: 'The terminal', prompt: 'The airport hall, with a departures board where every flight is going somewhere strange', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The officer', prompt: 'A security officer holding something up in shock, facing left', kind: 'character', depth: 5, guide: 'personL', rect: [530, 170, 190, 390] },
       { label: 'The traveler', prompt: 'A traveler pretending nothing is wrong, facing right', kind: 'character', depth: 5, guide: 'personR', rect: [80, 190, 180, 360] },
-      { label: 'The suitcase', prompt: 'An open suitcase that has clearly been overpacked', kind: 'scenery', depth: 6, guide: 'box', rect: [270, 310, 250, 160] },
-      { label: 'The discovery', prompt: 'The ridiculous thing found in the suitcase', kind: 'character', depth: 7, guide: 'box', rect: [380, 140, 170, 150] },
+      { label: 'The windows', prompt: 'Big windows across the middle, with a plane outside doing something it should not (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 120, 800, 220] },
       { label: 'The counter', prompt: 'The security counter across the bottom, with a conveyor belt (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 450, 800, 150] },
-      { label: 'The board', prompt: 'A departures board where every flight is going somewhere strange', kind: 'scenery', depth: 1, guide: 'box', rect: [250, 20, 300, 110] },
+      { label: 'The discovery', prompt: 'The ridiculous thing found in the suitcase', kind: 'character', depth: 7, guide: 'box', rect: [380, 140, 170, 150] },
       { label: 'The dog', prompt: 'A sniffer dog who has found something else entirely', kind: 'character', depth: 9, guide: 'box', rect: [40, 420, 180, 140] },
-      { label: 'The plane', prompt: 'A plane outside the window, doing something it should not', kind: 'scenery', depth: 1, guide: 'box', rect: [590, 30, 180, 120] },
+      { label: 'The suitcase', prompt: 'An open suitcase that has clearly been overpacked', kind: 'scenery', depth: 6, guide: 'box', rect: [270, 310, 250, 160] },
     ],
   },
   {
@@ -201,14 +207,14 @@ module.exports = [
     secret: 'A museum guard sleeping while a statue comes to life',
     page: ['#F3EEE4', '#E0D4BE'],
     slots: [
+      { label: 'The gallery', prompt: 'The museum hall, with a very serious painting that has noticed', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The guard', prompt: 'A museum guard, fast asleep in a chair', kind: 'character', depth: 5, guide: 'box', rect: [50, 260, 230, 260] },
       { label: 'The statue', prompt: 'A statue that has just come to life, sneaking off to the left', kind: 'character', depth: 5, guide: 'personL', rect: [480, 150, 200, 400] },
-      { label: 'The plinth', prompt: 'The empty stand the statue was on, with its little name sign', kind: 'scenery', depth: 3, guide: 'box', rect: [310, 330, 150, 190] },
-      { label: 'The painting', prompt: 'A very serious painting on the wall that has noticed', kind: 'scenery', depth: 1, guide: 'box', rect: [40, 40, 230, 180] },
-      { label: 'The floor', prompt: 'The fancy museum floor across the bottom, with something spilled on it (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 500, 800, 100] },
-      { label: 'The rope', prompt: 'A velvet rope barrier that did not stop anyone', kind: 'scenery', depth: 7, guide: 'box', rect: [270, 430, 270, 110] },
-      { label: 'The other painting', prompt: 'A painting of people who are watching this happen', kind: 'scenery', depth: 1, guide: 'box', rect: [300, 40, 220, 150] },
-      { label: 'The camera', prompt: 'A security camera that has seen it all', kind: 'character', depth: 2, guide: 'box', rect: [640, 20, 140, 110] },
+      { label: 'The exhibits', prompt: 'A row of other exhibits across the middle, all watching this happen (fill it in!)', kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 180, 800, 250] },
+      { label: 'The floor', prompt: 'The fancy floor across the bottom, with a velvet rope that stopped no one (fill it in!)', kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 480, 800, 120] },
+      { label: 'The plinth', prompt: 'The empty stand the statue was on, with its little name sign', kind: 'scenery', depth: 4, guide: 'box', rect: [310, 330, 150, 190] },
+      { label: 'The camera', prompt: 'A security camera that has seen it all', kind: 'character', depth: 9, guide: 'box', rect: [640, 20, 140, 110] },
+      { label: 'The loot', prompt: 'Something the statue has stolen on its way out', kind: 'character', depth: 7, guide: 'box', rect: [360, 170, 140, 120] },
     ],
   },
   {
@@ -216,14 +222,14 @@ module.exports = [
     secret: 'A pirate ship where the captain is a parrot',
     page: ['#A6D8F3', '#3F84B5'],
     slots: [
+      { label: 'The horizon', prompt: 'The sky and sea, with an island in the distance that looks suspicious', kind: 'scenery', depth: 0, guide: 'full', rect: FULL },
       { label: 'The captain', prompt: "A parrot in a captain's hat, giving orders", kind: 'character', depth: 6, guide: 'box', rect: [300, 120, 200, 220] },
       { label: 'The pirate', prompt: 'A pirate saluting a bird, facing right', kind: 'character', depth: 5, guide: 'personR', rect: [70, 200, 180, 350] },
-      { label: 'The deck', prompt: "The ship's railing across the bottom, a bit worn out (fill it in!)", kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 460, 800, 140] },
-      { label: 'The sail', prompt: 'The sail, with a very strange flag on top', kind: 'scenery', depth: 2, guide: 'box', rect: [530, 20, 230, 290] },
-      { label: 'The monster', prompt: 'A sea monster peeking over the side of the ship', kind: 'character', depth: 7, guide: 'box', rect: [560, 300, 220, 200] },
-      { label: 'The treasure', prompt: 'A treasure chest that is a big disappointment', kind: 'character', depth: 9, guide: 'box', rect: [300, 370, 190, 140] },
-      { label: 'The seagull', prompt: 'A seagull stealing something important', kind: 'character', depth: 1, guide: 'box', rect: [40, 30, 180, 120] },
-      { label: 'The island', prompt: 'An island in the distance that looks suspicious', kind: 'scenery', depth: 1, guide: 'box', rect: [290, 10, 190, 100] },
+      { label: 'The deck', prompt: "The ship's deck and cabin across the middle, with a very strange flag (fill it in!)", kind: 'scenery', depth: 2, guide: 'strip', rect: [0, 230, 800, 240] },
+      { label: 'The railing', prompt: "The ship's railing across the bottom, a bit worn out (fill it in!)", kind: 'scenery', depth: 8, guide: 'strip', rect: [0, 460, 800, 140] },
+      { label: 'The monster', prompt: 'A sea monster climbing up the side of the ship', kind: 'character', depth: 7, guide: 'box', rect: [560, 300, 220, 200] },
+      { label: 'The seagull', prompt: 'A seagull stealing something important', kind: 'character', depth: 9, guide: 'box', rect: [40, 30, 180, 120] },
+      { label: 'The treasure', prompt: 'A treasure chest that is a big disappointment', kind: 'character', depth: 9, guide: 'box', rect: [300, 380, 190, 140] },
     ],
   },
 ];

@@ -12,8 +12,8 @@ const COLORS = [
 
 // What to do, by kind of piece. Shown in large type next to the prompt.
 const BRIEFS = {
-  full: { kind: 'YOUR PIECE: THE BACKGROUND', how: 'Draw the whole background. Cover the entire page, including under the dashed boxes.' },
-  strip: { kind: 'YOUR PIECE: A STRIP ACROSS THE PICTURE', how: 'Fill the dotted strip from edge to edge. The fill bucket helps.' },
+  full: { kind: 'YOUR PIECE: THE BACKDROP', how: 'Draw the far-away background and cover the whole page. Everything else will be placed in front of it, so draw right through the dashed boxes.' },
+  strip: { kind: 'YOUR PIECE: A LAYER ACROSS THE PICTURE', how: 'Draw across the dotted strip from edge to edge and fill it in. Give the top edge a shape. The fill bucket helps.' },
   personR: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
   personL: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
   box: { kind: 'YOUR PIECE', how: 'Draw it inside the dotted box, about that size.' },
@@ -450,7 +450,13 @@ function addLayer(i, animate) {
   img.setAttribute('role', 'img');
   img.setAttribute('aria-label', `${l.label}, drawn by ${l.artist}`);
   if (animate) img.className = 'drop';
-  $('rv-paper').appendChild(img);
+  // each layer sits on its own plane, which moves by an amount set by its depth
+  const plane = document.createElement('div');
+  plane.className = 'plane';
+  plane.dataset.depth = revealLayers.length > 1 ? String(i / (revealLayers.length - 1)) : '0';
+  plane.appendChild(img);
+  $('rv-paper').appendChild(plane);
+  applyParallax();
   const li = document.createElement('li');
   const b = document.createElement('b');
   b.textContent = l.artist;
@@ -465,6 +471,52 @@ function addLayer(i, animate) {
     $('rv-tag').hidden = false;
     $('rv-count').textContent = `${i + 1} of ${revealLayers.length}`;
   }
+}
+
+// --- the moving reveal ------------------------------------------------------
+// Back layers barely move, front layers move the most, so the picture reads as a paper diorama.
+// With a mouse it follows the pointer; otherwise it drifts slowly on its own.
+const par = { x: 0, y: 0, tx: 0, ty: 0, hover: false, t: 0, running: false };
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function applyParallax() {
+  for (const plane of $('rv-paper').querySelectorAll('.plane')) {
+    const d = Number(plane.dataset.depth) || 0;
+    const amp = 0.4 + d * 3.2; // percent of the picture's width
+    const sc = 1 + (amp * 2.2) / 100;
+    plane.style.transform = `translate(${(-par.x * amp).toFixed(3)}%, ${(-par.y * amp * 0.6).toFixed(3)}%) scale(${sc.toFixed(4)})`;
+  }
+}
+
+function parallaxFrame() {
+  if (current() !== 'reveal') { par.running = false; return; }
+  par.t += 1 / 60;
+  if (!par.hover) {
+    par.tx = Math.sin(par.t * 0.55) * 0.7;
+    par.ty = Math.cos(par.t * 0.4) * 0.45;
+  }
+  par.x += (par.tx - par.x) * 0.08;
+  par.y += (par.ty - par.y) * 0.08;
+  applyParallax();
+  requestAnimationFrame(parallaxFrame);
+}
+
+function startParallax() {
+  if (reduceMotion || par.running) return;
+  par.running = true;
+  requestAnimationFrame(parallaxFrame);
+}
+
+{
+  const wrap = $('rv-paper').parentElement;
+  wrap.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const r = $('rv-paper').getBoundingClientRect();
+    par.hover = true;
+    par.tx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+    par.ty = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
+  });
+  wrap.addEventListener('pointerleave', () => { par.hover = false; });
 }
 
 function composite() {
@@ -585,6 +637,7 @@ const on = {
     $('rv-guess').hidden = true;
     $('rv-results').hidden = true;
     show('reveal');
+    startParallax();
     const started = performance.now();
     const imgs = await Promise.all(m.layers.map((l) => loadImage(l.png)));
     revealLayers = m.layers.map((l, i) => ({ ...l, img: treat(imgs[i], l.guide) }));
@@ -615,6 +668,7 @@ const on = {
     $('guess-send').disabled = !!m.guessed;
     $('guess-note').textContent = m.guessed ? 'Guess locked in.' : '';
     show('reveal');
+    startParallax();
     startTimer(m.remainingMs, () => { if (!$('guess-send').disabled) sendGuess(); });
     if (!m.guessed) $('guess-input').focus({ preventScroll: true });
   },
@@ -644,6 +698,7 @@ const on = {
     $('next').textContent = m.last ? 'See the gallery' : 'Next round';
     renderNext();
     show('reveal');
+    startParallax();
     if (room && !gallery.some((g) => g.round === room.round) && revealLayers.length) {
       gallery.push({ round: room.round, secret: m.secret, url: composite() });
     }
