@@ -2,7 +2,7 @@
 
 import { Sketch } from '/game/sketch.js';
 import { drawGuide, drawGhosts, drawOutOfBounds, paintPage } from '/game/guides.js';
-import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, setupView } from '/game/layers.js';
+import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, zoomFor, setupPeek } from '/game/layers.js';
 import { CANVAS, IDEAS, createGame, taskFor, submitWrite, submitDraw, turnComplete, nextTurn } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
@@ -15,9 +15,9 @@ const DRAW_HOW = {
   setting: 'Draw where this happens across the middle of the page, from edge to edge, and fill it in. Everything else goes in front of it.',
   full: 'Draw this as the backdrop and cover the whole page. Everything else will be added in front of it later.',
   strip: 'Draw across the dotted strip from edge to edge and fill it in. Give the top edge a shape. The fill bucket helps.',
-  personR: 'Draw them inside the dotted outline, facing the way the arrow points. Anything in the shaded part gets cut off.',
-  personL: 'Draw them inside the dotted outline, facing the way the arrow points. Anything in the shaded part gets cut off.',
-  box: 'Draw it inside the dotted box, about that size. Anything in the shaded part gets cut off.',
+  personR: 'Draw them inside the dotted outline, facing the way the arrow points. Keep it inside the dark frame: anything outside it gets cut off.',
+  personL: 'Draw them inside the dotted outline, facing the way the arrow points. Keep it inside the dark frame: anything outside it gets cut off.',
+  box: 'Draw it inside the dotted box, about that size. Keep it inside the dark frame: anything outside it gets cut off.',
 };
 
 let game = null;
@@ -335,7 +335,23 @@ $('wr-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('wr-d
 
 // --- draw turn -------------------------------------------------------------------
 
-const applyView = setupView('composite-view-telephone', 'faint', () => sketch && sketch.guideCanvas);
+// Small pieces are drawn zoomed in, with the picture so far faded. Holding the eye button
+// shows the whole picture at full strength.
+const BELOW_OPACITY = '0.5';
+let zoomCSS = null;
+let zoomHost = null;
+setupPeek($('peek'), () => {
+  if (!sketch) return;
+  sketch.finishStroke();
+  sketch.locked = true;
+  sketch.guideCanvas.style.opacity = '1';
+  if (zoomHost) zoomHost.style.transform = '';
+}, () => {
+  if (!sketch) return;
+  sketch.locked = false;
+  sketch.guideCanvas.style.opacity = BELOW_OPACITY;
+  if (zoomHost) zoomHost.style.transform = zoomCSS || '';
+});
 
 function buildColors() {
   const host = $('colors');
@@ -383,21 +399,27 @@ async function startDraw(t) {
   $('lg-front').hidden = !t.ghosts.length;
   const slot = { guide: t.guide, rect: t.rect };
   const clip = clipFor(slot, CANVAS);
-  sketch = new Sketch($('sketch'), CANVAS);
+  zoomHost = document.createElement('div');
+  zoomHost.className = 'zoom';
+  $('sketch').replaceChildren(zoomHost);
+  sketch = new Sketch(zoomHost, CANVAS);
   sketch.clip = clip;
   sketch.enclosedFill = t.guide !== 'strip' && t.guide !== 'full';
   sketch.onFillRefused = () => toast('Fill works inside a closed shape. Draw an outline first, then fill it.');
   window.__slot = { ...slot, prompt: t.instruction, spec: t.spec.key }; // read by the automated tests
   await paintBelow(sketch.guide, t);
   drawGhosts(sketch.guide, t.ghosts, CANVAS);
-  const over = overlayCanvas($('sketch'), CANVAS);
+  const over = overlayCanvas(zoomHost, CANVAS);
   drawOutOfBounds(over, clip, CANVAS);
   over.save();
   over.shadowColor = 'rgba(255,255,255,0.95)';
   over.shadowBlur = 5;
   drawGuide(over, slot, CANVAS);
   over.restore();
-  applyView();
+  sketch.guideCanvas.style.opacity = BELOW_OPACITY;
+  zoomCSS = zoomFor(clip, CANVAS);
+  zoomHost.style.transform = zoomCSS || '';
+  if (zoomCSS) $('draw-how').textContent += ' Hold the eye button to see the whole picture.';
   const startColor = START_COLORS[(t.chain + t.layerIndex) % START_COLORS.length];
   sketch.color = startColor;
   document.querySelectorAll('.swatch').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.color === startColor)));

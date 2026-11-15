@@ -151,8 +151,12 @@ export function drawOutOfBounds(ctx, clip, canvas, dark = false) {
   ctx.beginPath();
   ctx.rect(0, 0, canvas.w, canvas.h);
   ctx.rect(clip[0], clip[1], clip[2], clip[3]);
-  ctx.fillStyle = dark ? 'rgba(0,0,0,0.3)' : 'rgba(31,36,48,0.08)';
+  ctx.fillStyle = dark ? 'rgba(0,0,0,0.35)' : 'rgba(31,36,48,0.13)';
   ctx.fill('evenodd');
+  // a clear edge: your ink stops here
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = dark ? 'rgba(244,241,232,0.8)' : 'rgba(31,36,48,0.7)';
+  ctx.strokeRect(clip[0] + 1.5, clip[1] + 1.5, clip[2] - 3, clip[3] - 3);
   ctx.restore();
 }
 

@@ -89,6 +89,7 @@
     <div class="canvas-col">
       <div class="paper-wrap">
         <div id="sketch" class="paper"></div>
+        <button type="button" class="tool peek" id="peek" aria-label="Hold to see the whole picture" title="Hold to see the whole picture" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2.500 12.200C5 7.600 8.400 5.600 12 5.600s7 2 9.500 6.600C19 16.700 15.600 18.600 12 18.600s-7-1.900-9.500-6.400z"/><path d="M12 9.200c1.700 0 3 1.300 3 3s-1.300 3-3 3-3-1.300-3-3 1.300-3 3-3z"/></svg></button>
         <span class="tape" aria-hidden="true"></span>
       </div>
     </div>
@@ -104,12 +105,6 @@
         <span class="gap"></span>
         <button type="button" class="tool" id="undo" aria-label="Undo"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8.500 5C6.500 6.500 4.500 8.500 3 10.200c1.500 1.600 3.500 3.400 5.200 4.800"/><path d="M3 10.200c4-.4 8-.3 11 0 3.500.6 5 3 4.800 5.300-.3 2.600-2.400 4.200-5 4.400l-3.600.1"/></svg></button>
         <button type="button" class="tool" id="redo" aria-label="Redo"><svg aria-hidden="true" viewBox="0 0 24 24"><g transform="translate(24 0) scale(-1 1)"><path d="M8.500 5C6.500 6.500 4.500 8.500 3 10.200c1.500 1.600 3.500 3.400 5.200 4.800"/><path d="M3 10.200c4-.4 8-.3 11 0 3.500.6 5 3 4.800 5.300-.3 2.600-2.400 4.200-5 4.400l-3.600.1"/></g></svg></button>
-      </div>
-      <div class="view" role="group" aria-label="Show the other pieces">
-        <span class="view-label">Other pieces</span>
-        <button type="button" class="view-btn" data-view="full" aria-pressed="true">Full</button>
-        <button type="button" class="view-btn" data-view="faint" aria-pressed="false">Faint</button>
-        <button type="button" class="view-btn" data-view="off" aria-pressed="false">Hidden</button>
       </div>
       <div id="colors" class="colors" role="group" aria-label="Colors"></div>
       <button id="done" type="button" class="btn primary wide">I'm done!</button>

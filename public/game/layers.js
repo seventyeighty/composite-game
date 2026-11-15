@@ -141,20 +141,31 @@ export function overlayCanvas(host, size) {
   return c.getContext('2d');
 }
 
-// "Full / Faint / Hidden" for what sits under the drawing. Remembers the choice between turns.
-export function setupView(storageKey, fallback, getTarget) {
-  const buttons = [...document.querySelectorAll('[data-view]')];
-  let mode = fallback;
-  try { mode = localStorage.getItem(storageKey) || fallback; } catch { /* storage unavailable */ }
-  const apply = () => {
-    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
-    const el = getTarget();
-    if (el) el.style.opacity = mode === 'full' ? '1' : mode === 'faint' ? '0.4' : '0';
-  };
-  buttons.forEach((b) => b.addEventListener('click', () => {
-    mode = b.dataset.view;
-    try { localStorage.setItem(storageKey, mode); } catch { /* storage unavailable */ }
-    apply();
-  }));
-  return apply;
+// Zoom so a small piece's drawing area fills most of the frame. Returns a CSS transform, or null
+// when the piece is already big (strips) and zooming wouldn't help.
+export function zoomFor(clip, canvas) {
+  if (!clip) return null;
+  const [x, y, w, h] = clip;
+  const s = Math.min(canvas.w / w, canvas.h / h, 2.6) * 0.92;
+  if (s < 1.15) return null;
+  let tx = 0.5 - (s * (x + w / 2)) / canvas.w;
+  let ty = 0.5 - (s * (y + h / 2)) / canvas.h;
+  tx = Math.min(0, Math.max(1 - s, tx));
+  ty = Math.min(0, Math.max(1 - s, ty));
+  return `translate(${(tx * 100).toFixed(3)}%, ${(ty * 100).toFixed(3)}%) scale(${s.toFixed(3)})`;
+}
+
+// A button you press and hold. start() runs on press, end() on release.
+export function setupPeek(button, start, end) {
+  let on = false;
+  const go = (e) => { if (e) e.preventDefault(); if (on) return; on = true; button.setAttribute('aria-pressed', 'true'); start(); };
+  const stop = () => { if (!on) return; on = false; button.setAttribute('aria-pressed', 'false'); end(); };
+  button.addEventListener('pointerdown', (e) => { button.setPointerCapture(e.pointerId); go(e); });
+  button.addEventListener('pointerup', stop);
+  button.addEventListener('pointercancel', stop);
+  button.addEventListener('lostpointercapture', stop);
+  button.addEventListener('contextmenu', (e) => e.preventDefault());
+  button.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) go(e); });
+  button.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') stop(); });
+  button.addEventListener('blur', stop);
 }

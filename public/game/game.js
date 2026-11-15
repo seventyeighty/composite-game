@@ -2,7 +2,7 @@
 
 import { Sketch } from './sketch.js';
 import { drawGuide, drawGhosts, drawOutOfBounds, paintPage, isDark } from './guides.js';
-import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, setupView } from './layers.js';
+import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, zoomFor, setupPeek } from './layers.js';
 
 const $ = (id) => document.getElementById(id);
 const SCREENS = ['home', 'lobby', 'draw', 'wait', 'reveal', 'end'];
@@ -19,7 +19,7 @@ const BRIEFS = {
   personL: { kind: 'YOUR PIECE: A CHARACTER', how: 'Draw your character inside the dotted outline, facing the way the arrow points.' },
   box: { kind: 'YOUR PIECE', how: 'Draw it inside the dotted box, about that size.' },
 };
-const CUT_OFF = ' Anything in the shaded part of the page gets cut off.';
+const CUT_OFF = ' Keep it inside the dark frame: anything outside it gets cut off.';
 
 const SESSION_KEY = 'composite-session';
 
@@ -226,7 +226,19 @@ $('copy-link').addEventListener('click', async () => {
 
 // --- drawing ---------------------------------------------------------------
 
-const applyView = setupView('composite-view-scene', 'full', () => sketch && sketch.guideCanvas);
+// Small pieces are drawn zoomed in. Holding the eye button shows the whole picture.
+let zoomCSS = null;
+let zoomHost = null;
+setupPeek($('peek'), () => {
+  if (!sketch) return;
+  sketch.finishStroke();
+  sketch.locked = true;
+  if (zoomHost) zoomHost.style.transform = '';
+}, () => {
+  if (!sketch) return;
+  if (!submitted) sketch.locked = false;
+  if (zoomHost) zoomHost.style.transform = zoomCSS || '';
+});
 
 function buildColors() {
   const host = $('colors');
@@ -458,7 +470,10 @@ const on = {
     submitted = false;
     $('draw-round').textContent = roundLabel(m);
     $('draw-prompt').textContent = m.slot.prompt;
-    sketch = new Sketch($('sketch'), m.canvas);
+    zoomHost = document.createElement('div');
+    zoomHost.className = 'zoom';
+    $('sketch').replaceChildren(zoomHost);
+    sketch = new Sketch(zoomHost, m.canvas);
     const soft = m.slot.guide === 'full';
     const brief = BRIEFS[m.slot.guide] || BRIEFS.box;
     $('draw-kind').textContent = brief.kind;
@@ -475,10 +490,13 @@ const on = {
     $('lg-back').hidden = !ghosts.some((g) => !g.front);
     paintPage(sketch.guide, m.page, m.canvas.w, m.canvas.h);
     drawGhosts(sketch.guide, ghosts, m.canvas, soft, dark);
-    const over = overlayCanvas($('sketch'), m.canvas);
+    const over = overlayCanvas(zoomHost, m.canvas);
     drawOutOfBounds(over, clip, m.canvas, dark);
     drawGuide(over, m.slot, m.canvas, dark);
-    applyView();
+    zoomCSS = zoomFor(clip, m.canvas);
+    zoomHost.style.transform = zoomCSS || '';
+    $('peek').hidden = !zoomCSS;
+    if (zoomCSS) $('draw-how').textContent += ' Hold the eye button to see the whole picture.';
     window.__slot = m.slot; // read by the automated tests
     let startColor = START_COLORS[m.slot.id % START_COLORS.length];
     if (startColor === '#1F2430' && dark) startColor = '#FFFFFF';
