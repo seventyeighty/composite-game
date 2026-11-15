@@ -76,6 +76,7 @@
       <div class="prompt card">
         <div id="draw-kind" class="small-label">YOUR PIECE</div>
         <div id="draw-prompt" class="prompt-text"></div>
+        <button type="button" class="how-toggle" id="how-toggle" aria-expanded="false">How?</button>
       </div>
       <div class="how card">
         <p id="draw-how"></p>
@@ -87,7 +88,7 @@
       </div>
     </div>
     <div class="canvas-col">
-      <div class="paper-wrap">
+      <div class="paper-wrap" id="paper-wrap">
         <div id="sketch" class="paper"></div>
         <button type="button" class="tool peek" id="peek" aria-label="Hold to see the whole picture" title="Hold to see the whole picture" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2.500 12.200C5 7.600 8.400 5.600 12 5.600s7 2 9.500 6.600C19 16.700 15.600 18.600 12 18.600s-7-1.900-9.500-6.400z"/><path d="M12 9.200c1.700 0 3 1.300 3 3s-1.300 3-3 3-3-1.300-3-3 1.300-3 3-3z"/></svg></button>
         <span class="tape" aria-hidden="true"></span>

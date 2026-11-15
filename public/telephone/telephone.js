@@ -2,7 +2,7 @@
 
 import { Sketch } from '/game/sketch.js';
 import { drawGuide, drawGhosts, drawOutOfBounds, paintPage } from '/game/guides.js';
-import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, zoomFor, setupPeek } from '/game/layers.js';
+import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, framer, setupPeek, setupHow } from '/game/layers.js';
 import { CANVAS, IDEAS, createGame, taskFor, submitWrite, submitDraw, turnComplete, nextTurn } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
@@ -338,19 +338,20 @@ $('wr-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('wr-d
 // Small pieces are drawn zoomed in, with the picture so far faded. Holding the eye button
 // shows the whole picture at full strength.
 const BELOW_OPACITY = '0.5';
-let zoomCSS = null;
+const frame = framer($('paper-wrap'), $('sketch'));
+const howTurn = setupHow(document.querySelector('#draw .brief'), $('how-toggle'));
 let zoomHost = null;
 setupPeek($('peek'), () => {
   if (!sketch) return;
   sketch.finishStroke();
   sketch.locked = true;
   sketch.guideCanvas.style.opacity = '1';
-  if (zoomHost) zoomHost.style.transform = '';
+  frame.view(false);
 }, () => {
   if (!sketch) return;
   sketch.locked = false;
   sketch.guideCanvas.style.opacity = BELOW_OPACITY;
-  if (zoomHost) zoomHost.style.transform = zoomCSS || '';
+  frame.view(true);
 });
 
 function buildColors() {
@@ -407,8 +408,10 @@ async function startDraw(t) {
   sketch.enclosedFill = t.guide !== 'strip' && t.guide !== 'full';
   sketch.onFillRefused = () => toast('Fill works inside a closed shape. Draw an outline first, then fill it.');
   window.__slot = { ...slot, prompt: t.instruction, spec: t.spec.key }; // read by the automated tests
+  const zoomed = frame.set(zoomHost, clip, CANVAS);
+  howTurn();
   await paintBelow(sketch.guide, t);
-  drawGhosts(sketch.guide, t.ghosts, CANVAS);
+  drawGhosts(sketch.guide, t.ghosts, CANVAS, false, false, zoomed);
   const over = overlayCanvas(zoomHost, CANVAS);
   drawOutOfBounds(over, clip, CANVAS);
   over.save();
@@ -417,9 +420,7 @@ async function startDraw(t) {
   drawGuide(over, slot, CANVAS);
   over.restore();
   sketch.guideCanvas.style.opacity = BELOW_OPACITY;
-  zoomCSS = zoomFor(clip, CANVAS);
-  zoomHost.style.transform = zoomCSS || '';
-  if (zoomCSS) $('draw-how').textContent += ' Hold the eye button to see the whole picture.';
+  if (zoomed) $('draw-how').textContent += ' Hold the eye button to see the whole picture.';
   const startColor = START_COLORS[(t.chain + t.layerIndex) % START_COLORS.length];
   sketch.color = startColor;
   document.querySelectorAll('.swatch').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.color === startColor)));

@@ -112,7 +112,7 @@ function label(ctx, text, x0, y0, x1, y1, dark = false) {
 // Normal pieces: pale stripes are behind yours, bold stripes will cover yours.
 // soft (used for the background, which everything sits on): light dashed boxes only,
 // so the page still reads as something to draw all over.
-export function drawGhosts(ctx, ghosts, canvas, soft = false, dark = false) {
+export function drawGhosts(ctx, ghosts, canvas, soft = false, dark = false, quiet = false) {
   const inset = 4;
   const sorted = [...ghosts].sort((a, b) => Number(a.front) - Number(b.front));
   for (const g of sorted) {
@@ -120,6 +120,7 @@ export function drawGhosts(ctx, ghosts, canvas, soft = false, dark = false) {
     const x0 = Math.max(x, inset), y0 = Math.max(y, inset);
     const x1 = Math.min(x + w, canvas.w - inset), y1 = Math.min(y + h, canvas.h - inset);
     ctx.save();
+    if (quiet) ctx.globalAlpha = 0.55; // zoomed in: lighter, no labels, so the drawing gets the room
     roundRect(ctx, x0, y0, x1 - x0, y1 - y0, 22);
     if (soft) {
       ctx.setLineDash([10, 9]);
@@ -138,7 +139,7 @@ export function drawGhosts(ctx, ghosts, canvas, soft = false, dark = false) {
       ctx.strokeStyle = g.front ? `rgba(${rgb},0.6)` : `rgba(${rgb},0.3)`;
       ctx.lineWidth = 2;
       ctx.stroke();
-      label(ctx, g.front ? 'covers yours' : 'behind yours', x0, y0, x1, y1, dark);
+      if (!quiet) label(ctx, g.front ? 'covers yours' : 'behind yours', x0, y0, x1, y1, dark);
     }
     ctx.restore();
   }

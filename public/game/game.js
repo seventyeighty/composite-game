@@ -2,7 +2,7 @@
 
 import { Sketch } from './sketch.js';
 import { drawGuide, drawGhosts, drawOutOfBounds, paintPage, isDark } from './guides.js';
-import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, zoomFor, setupPeek } from './layers.js';
+import { START_COLORS, clipFor, treat, pageCSS, overlayCanvas, framer, setupPeek, setupHow } from './layers.js';
 
 const $ = (id) => document.getElementById(id);
 const SCREENS = ['home', 'lobby', 'draw', 'wait', 'reveal', 'end'];
@@ -227,17 +227,18 @@ $('copy-link').addEventListener('click', async () => {
 // --- drawing ---------------------------------------------------------------
 
 // Small pieces are drawn zoomed in. Holding the eye button shows the whole picture.
-let zoomCSS = null;
+const frame = framer($('paper-wrap'), $('sketch'));
+const howTurn = setupHow(document.querySelector('#draw .brief'), $('how-toggle'));
 let zoomHost = null;
 setupPeek($('peek'), () => {
   if (!sketch) return;
   sketch.finishStroke();
   sketch.locked = true;
-  if (zoomHost) zoomHost.style.transform = '';
+  frame.view(false);
 }, () => {
   if (!sketch) return;
   if (!submitted) sketch.locked = false;
-  if (zoomHost) zoomHost.style.transform = zoomCSS || '';
+  frame.view(true);
 });
 
 function buildColors() {
@@ -488,15 +489,15 @@ const on = {
     sketch.onFillRefused = () => toast('Fill works inside a closed shape. Draw an outline first, then fill it.');
     const dark = isDark(m.page);
     $('lg-back').hidden = !ghosts.some((g) => !g.front);
+    const zoomed = frame.set(zoomHost, clip, m.canvas);
+    howTurn();
     paintPage(sketch.guide, m.page, m.canvas.w, m.canvas.h);
-    drawGhosts(sketch.guide, ghosts, m.canvas, soft, dark);
+    drawGhosts(sketch.guide, ghosts, m.canvas, soft, dark, zoomed);
     const over = overlayCanvas(zoomHost, m.canvas);
     drawOutOfBounds(over, clip, m.canvas, dark);
     drawGuide(over, m.slot, m.canvas, dark);
-    zoomCSS = zoomFor(clip, m.canvas);
-    zoomHost.style.transform = zoomCSS || '';
-    $('peek').hidden = !zoomCSS;
-    if (zoomCSS) $('draw-how').textContent += ' Hold the eye button to see the whole picture.';
+    $('peek').hidden = !zoomed;
+    if (zoomed) $('draw-how').textContent += ' Hold the eye button to see the whole picture.';
     window.__slot = m.slot; // read by the automated tests
     let startColor = START_COLORS[m.slot.id % START_COLORS.length];
     if (startColor === '#1F2430' && dark) startColor = '#FFFFFF';

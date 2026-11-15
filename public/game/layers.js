@@ -169,3 +169,59 @@ export function setupPeek(button, start, end) {
   button.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') stop(); });
   button.addEventListener('blur', stop);
 }
+
+// Shows a small piece's drawing area as big as the screen allows.
+// On phones the paper itself changes shape to fit the piece (a tall frame for a character);
+// on bigger screens the 4:3 page stays and zooms in. view(false) shows the whole page again.
+export function framer(wrap, paper) {
+  let host = null, clip = null, canvas = null, mode = null, css = null;
+  const phone = () => window.matchMedia('(max-width:600px)').matches;
+  function clear() {
+    wrap.style.width = '';
+    paper.style.aspectRatio = '';
+    if (!host) return;
+    for (const k of ['left', 'top', 'right', 'bottom', 'width', 'height', 'transform']) host.style[k] = '';
+  }
+  function apply() {
+    clear();
+    if (mode === 'frame') {
+      const [fx, fy, fw, fh] = css;
+      const maxH = Math.min(window.innerHeight * 0.58, 600);
+      wrap.style.width = `min(100%, ${Math.round((maxH * fw) / fh)}px)`;
+      paper.style.aspectRatio = `${fw} / ${fh}`;
+      Object.assign(host.style, {
+        left: `${(-fx / fw) * 100}%`, top: `${(-fy / fh) * 100}%`, right: 'auto', bottom: 'auto',
+        width: `${(canvas.w / fw) * 100}%`, height: `${(canvas.h / fh) * 100}%`,
+      });
+    } else if (mode === 'zoom') {
+      host.style.transform = css;
+    }
+  }
+  return {
+    // Returns true when the view is zoomed or framed.
+    set(h, c, size) {
+      host = h; clip = c; canvas = size; mode = null; css = null;
+      if (clip && phone() && clip[2] < canvas.w * 0.8) {
+        const pad = 14;
+        const fx = Math.max(0, clip[0] - pad), fy = Math.max(0, clip[1] - pad);
+        const fw = Math.min(canvas.w, clip[0] + clip[2] + pad) - fx, fh = Math.min(canvas.h, clip[1] + clip[3] + pad) - fy;
+        mode = 'frame'; css = [fx, fy, fw, fh];
+      } else {
+        css = zoomFor(clip, canvas);
+        if (css) mode = 'zoom';
+      }
+      apply();
+      return mode !== null;
+    },
+    view(close) { if (close) apply(); else clear(); },
+  };
+}
+
+// On phones the instructions fold away behind a "How?" button, so the drawing gets the room.
+// They start open on the first drawing turn of a visit and folded after that.
+export function setupHow(brief, button) {
+  let first = true;
+  const show = (on) => { brief.classList.toggle('show-how', on); button.setAttribute('aria-expanded', String(on)); button.textContent = on ? 'Hide' : 'How?'; };
+  button.addEventListener('click', () => show(!brief.classList.contains('show-how')));
+  return () => { show(first); first = false; };
+}
